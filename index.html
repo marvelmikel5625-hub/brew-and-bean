@@ -45,6 +45,10 @@
 <!-- Lucide Icons -->
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
+<!-- Leaflet (OpenStreetMap) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <style>
   :root{
     --espresso:#241A16;
@@ -131,7 +135,15 @@
   }
   #mobile-menu.open{ max-height:520px; }
 
-  /* Buttons */
+  /* Buttons — one consistent system: height, padding and radius set via utility
+     classes in markup (px-8 py-4 / px-6 py-3), color + motion handled here. */
+  .btn-primary,
+  .btn-outline,
+  .btn-outline-dark{
+    border-radius:3px;
+    letter-spacing:.03em;
+  }
+
   .btn-primary{
     background:var(--espresso);
     color:var(--offwhite);
@@ -308,14 +320,38 @@
 
   .error-text{ color:#9c4a3f; }
 
-  /* Map look */
-  .map-fake{
-    background:
-      linear-gradient(rgba(90,64,50,.06), rgba(90,64,50,.06)),
-      repeating-linear-gradient(0deg, rgba(90,64,50,.08) 0 1px, transparent 1px 46px),
-      repeating-linear-gradient(90deg, rgba(90,64,50,.08) 0 1px, transparent 1px 46px),
-      var(--cream);
+  /* Real map (Leaflet / OpenStreetMap) */
+  #map{
+    filter:sepia(8%) saturate(85%) brightness(97%);
   }
+  #map .leaflet-popup-content-wrapper{
+    background:var(--offwhite);
+    color:var(--espresso);
+    border-radius:2px;
+    box-shadow:0 12px 30px -14px rgba(36,26,22,.45);
+  }
+  #map .leaflet-popup-content{
+    font-family:'Inter', sans-serif;
+    margin:12px 14px;
+  }
+  #map .leaflet-popup-content strong{
+    font-family:'Playfair Display', serif;
+    font-size:1rem;
+  }
+  #map .leaflet-popup-tip{ background:var(--offwhite); }
+  #map .leaflet-control-zoom a{
+    color:var(--espresso) !important;
+    font-family:'Inter', sans-serif;
+  }
+  .map-pin-marker{
+    width:36px; height:36px;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--espresso);
+    border-radius:50% 50% 50% 0;
+    transform:rotate(-45deg);
+    box-shadow:0 8px 18px -6px rgba(36,26,22,.55);
+  }
+  .map-pin-marker i{ transform:rotate(45deg); color:var(--offwhite); width:16px; height:16px; }
 
   /* Utility */
   .tracking-wide-xl{ letter-spacing:.2em; }
@@ -411,13 +447,13 @@
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 reveal">
         <div>
           <p class="text-coffee text-xs font-semibold tracking-wide-xl mb-5">OUR SIGNATURES</p>
-          <h2 id="signature-heading" class="font-display text-4xl sm:text-5xl md:text-6xl leading-[1.05]">Your next favorite cup.</h2>
+          <h2 id="signature-heading" class="font-display text-4xl sm:text-5xl leading-[1.05]">Your next favorite cup.</h2>
         </div>
         <p class="text-espresso/60 max-w-xs text-sm leading-relaxed">Three drinks that define who we are — balanced, honest, and made to order.</p>
       </div>
 
       <div class="grid md:grid-cols-3 gap-10 md:gap-8">
-        <article class="reveal">
+        <article class="reveal group">
           <div class="img-zoom aspect-[4/5] mb-6">
             <img src="https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?auto=format&fit=crop&w=900&q=80" alt="A single shot of rich espresso in a small ceramic cup on a dark wooden table" class="w-full h-full object-cover" loading="lazy">
           </div>
@@ -425,13 +461,13 @@
             <div>
               <span class="font-display italic text-coffee text-sm">I.</span>
               <h3 class="font-display text-2xl mt-1">Espresso</h3>
-              <p class="text-espresso/60 text-sm mt-2 max-w-[22ch]">Rich, balanced and intense.</p>
+              <p class="text-espresso/55 group-hover:text-espresso/85 transition-colors duration-300 text-sm mt-2 max-w-[22ch]">Rich, balanced and intense.</p>
             </div>
-            <span class="font-display text-lg mt-1">$3.50</span>
+            <span class="font-display text-lg mt-1 shrink-0">$3.50</span>
           </div>
         </article>
 
-        <article class="reveal reveal-delay-1">
+        <article class="reveal reveal-delay-1 group">
           <div class="img-zoom aspect-[4/5] mb-6">
             <img src="https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=900&q=80" alt="Cappuccino with silky milk foam and a heart-shaped latte art pattern" class="w-full h-full object-cover" loading="lazy">
           </div>
@@ -439,13 +475,13 @@
             <div>
               <span class="font-display italic text-coffee text-sm">II.</span>
               <h3 class="font-display text-2xl mt-1">Cappuccino</h3>
-              <p class="text-espresso/60 text-sm mt-2 max-w-[22ch]">Silky milk foam with our signature espresso.</p>
+              <p class="text-espresso/55 group-hover:text-espresso/85 transition-colors duration-300 text-sm mt-2 max-w-[22ch]">Silky milk foam with our signature espresso.</p>
             </div>
-            <span class="font-display text-lg mt-1">$5.00</span>
+            <span class="font-display text-lg mt-1 shrink-0">$5.00</span>
           </div>
         </article>
 
-        <article class="reveal reveal-delay-2">
+        <article class="reveal reveal-delay-2 group">
           <div class="img-zoom aspect-[4/5] mb-6">
             <img src="https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=900&q=80" alt="Iced latte with layered espresso and cold milk in a tall glass" class="w-full h-full object-cover" loading="lazy">
           </div>
@@ -453,9 +489,9 @@
             <div>
               <span class="font-display italic text-coffee text-sm">III.</span>
               <h3 class="font-display text-2xl mt-1">Iced Latte</h3>
-              <p class="text-espresso/60 text-sm mt-2 max-w-[22ch]">Smooth espresso, cold milk and a touch of sweetness.</p>
+              <p class="text-espresso/55 group-hover:text-espresso/85 transition-colors duration-300 text-sm mt-2 max-w-[22ch]">Smooth espresso, cold milk and a touch of sweetness.</p>
             </div>
-            <span class="font-display text-lg mt-1">$5.50</span>
+            <span class="font-display text-lg mt-1 shrink-0">$5.50</span>
           </div>
         </article>
       </div>
@@ -466,7 +502,7 @@
   <section id="menu" class="section-pad px-6 md:px-10 bg-offwhite" aria-labelledby="menu-heading">
     <div class="max-w-4xl mx-auto text-center mb-14 reveal">
       <p class="text-coffee text-xs font-semibold tracking-wide-xl mb-5">THE MENU</p>
-      <h2 id="menu-heading" class="font-display text-4xl sm:text-5xl md:text-6xl leading-[1.05]">Something for<br class="sm:hidden"> every hour.</h2>
+      <h2 id="menu-heading" class="font-display text-4xl sm:text-5xl leading-[1.05]">Something for<br class="sm:hidden"> every hour.</h2>
     </div>
 
     <div class="max-w-3xl mx-auto reveal reveal-delay-1">
@@ -565,7 +601,7 @@
     <div class="max-w-7xl mx-auto">
       <div class="max-w-2xl mb-14 reveal">
         <p class="text-coffee text-xs font-semibold tracking-wide-xl mb-5">FROM THE KITCHEN</p>
-        <h2 id="food-heading" class="font-display text-4xl sm:text-5xl md:text-6xl leading-[1.05]">More than coffee.</h2>
+        <h2 id="food-heading" class="font-display text-4xl sm:text-5xl leading-[1.05]">More than coffee.</h2>
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-6 gap-4 md:gap-5">
@@ -592,13 +628,17 @@
   </section>
 
   <!-- ATMOSPHERE -->
-  <section class="relative h-[85vh] min-h-[520px] w-full overflow-hidden" aria-labelledby="atmosphere-heading">
-    <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1920&q=80" alt="Modern coffee shop interior with warm wood tones, pendant lighting and guests relaxing" class="absolute inset-0 w-full h-full object-cover" loading="lazy">
-    <div class="absolute inset-0 bg-gradient-to-t from-espresso/85 via-espresso/35 to-espresso/20"></div>
-    <div class="relative h-full max-w-7xl mx-auto px-6 md:px-10 flex flex-col justify-end pb-20 reveal">
-      <p class="text-offwhite/75 text-xs font-semibold tracking-wide-xl mb-5">YOUR NEW FAVORITE CORNER</p>
-      <h2 id="atmosphere-heading" class="font-display text-offwhite text-4xl sm:text-5xl md:text-6xl leading-[1.05] max-w-xl mb-8">Come for the coffee.<br>Stay for the atmosphere.</h2>
-      <a href="#location" class="btn-outline inline-flex w-fit px-8 py-4 text-sm font-medium tracking-wide">Visit Us →</a>
+  <section class="section-pad px-6 md:px-10 bg-cream" aria-labelledby="atmosphere-heading">
+    <div class="max-w-7xl mx-auto reveal">
+      <div class="relative w-full aspect-[21/9] min-h-[280px] overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1920&q=80" alt="Modern coffee shop interior with warm wood tones, pendant lighting and guests relaxing" class="absolute inset-0 w-full h-full object-cover" loading="lazy">
+        <div class="absolute inset-0 bg-gradient-to-t from-espresso/85 via-espresso/25 to-transparent"></div>
+        <div class="relative h-full flex flex-col justify-end px-6 md:px-12 pb-8 md:pb-12">
+          <p class="text-offwhite/75 text-xs font-semibold tracking-wide-xl mb-4">YOUR NEW FAVORITE CORNER</p>
+          <h2 id="atmosphere-heading" class="font-display text-offwhite text-3xl sm:text-4xl md:text-5xl leading-[1.05] max-w-xl mb-6">Come for the coffee.<br>Stay for the atmosphere.</h2>
+          <a href="#location" class="btn-outline inline-flex w-fit px-7 py-3.5 text-sm font-medium tracking-wide">Visit Us →</a>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -607,23 +647,23 @@
     <div class="max-w-7xl mx-auto">
       <div class="max-w-2xl mb-14 reveal">
         <p class="text-coffee text-xs font-semibold tracking-wide-xl mb-5">A LOOK INSIDE</p>
-        <h2 id="gallery-heading" class="font-display text-4xl sm:text-5xl md:text-6xl leading-[1.05]">Moments, brewed daily.</h2>
+        <h2 id="gallery-heading" class="font-display text-4xl sm:text-5xl leading-[1.05]">Moments, brewed daily.</h2>
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-4 auto-rows-[180px] md:auto-rows-[220px] gap-4">
         <div class="gallery-item col-span-1 row-span-2 reveal">
-          <img src="https://images.unsplash.com/photo-1442550528053-c431ecb55509?auto=format&fit=crop&w=800&q=80" alt="Barista focused while preparing a coffee order at the bar" class="w-full h-full object-cover" loading="lazy">
+          <img src="https://images.unsplash.com/photo-1521017432531-fbd92d768814?auto=format&fit=crop&w=800&q=80" alt="Barista pouring latte art at the espresso bar" class="w-full h-full object-cover" loading="lazy">
           <div class="gallery-overlay p-4"><span class="gallery-label text-offwhite text-xs tracking-wide-xl font-semibold">THE BAR</span></div>
         </div>
         <div class="gallery-item col-span-1 row-span-1 reveal reveal-delay-1">
-          <img src="https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?auto=format&fit=crop&w=800&q=80" alt="Freshly pulled espresso shot with rich crema" class="w-full h-full object-cover" loading="lazy">
+          <img src="https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&w=800&q=80" alt="Freshly pulled espresso shot with rich crema" class="w-full h-full object-cover" loading="lazy">
           <div class="gallery-overlay p-4"><span class="gallery-label text-offwhite text-xs tracking-wide-xl font-semibold">MORNING COFFEE</span></div>
         </div>
         <div class="gallery-item col-span-1 row-span-1 reveal reveal-delay-2">
           <img src="https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=800&q=80" alt="Close-up of freshly roasted coffee beans" class="w-full h-full object-cover" loading="lazy">
         </div>
         <div class="gallery-item col-span-1 row-span-2 reveal">
-          <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80" alt="Fresh pastries fresh out of the oven on a wooden board" class="w-full h-full object-cover" loading="lazy">
+          <img src="https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?auto=format&fit=crop&w=800&q=80" alt="Fresh pastries fresh out of the oven on a wooden board" class="w-full h-full object-cover" loading="lazy">
           <div class="gallery-overlay p-4"><span class="gallery-label text-offwhite text-xs tracking-wide-xl font-semibold">FRESH FROM THE OVEN</span></div>
         </div>
         <div class="gallery-item col-span-1 row-span-1 reveal reveal-delay-1">
@@ -649,7 +689,7 @@
     <div class="max-w-7xl mx-auto">
       <div class="text-center max-w-2xl mx-auto mb-16 reveal">
         <p class="text-coffee text-xs font-semibold tracking-wide-xl mb-5">WHAT PEOPLE SAY</p>
-        <h2 id="testimonials-heading" class="font-display text-4xl sm:text-5xl md:text-6xl leading-[1.05]">Loved by coffee people.</h2>
+        <h2 id="testimonials-heading" class="font-display text-4xl leading-[1.05]">Loved by coffee people.</h2>
       </div>
 
       <div class="grid md:grid-cols-3 gap-10 md:gap-8">
@@ -673,19 +713,23 @@
   </section>
 
   <!-- RESERVATIONS -->
-  <section id="reservations" class="relative py-28 md:py-36 px-6 md:px-10 overflow-hidden" aria-labelledby="reservations-heading">
-    <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1920&q=80" alt="Atmospheric café table set with coffee, soft natural light in the background" class="absolute inset-0 w-full h-full object-cover" loading="lazy">
-    <div class="absolute inset-0 bg-espresso/88"></div>
-
-    <div class="relative max-w-6xl mx-auto grid lg:grid-cols-12 gap-14 items-start">
-      <div class="lg:col-span-5 reveal">
-        <p class="text-offwhite/70 text-xs font-semibold tracking-wide-xl mb-5">RESERVATIONS</p>
-        <h2 id="reservations-heading" class="font-display text-offwhite text-4xl sm:text-5xl leading-[1.05] mb-7">Make it a moment.</h2>
-        <p class="text-offwhite/70 text-base md:text-lg leading-relaxed max-w-sm">Reserve your table and enjoy coffee the way it was meant to be.</p>
+  <section id="reservations" class="section-pad px-6 md:px-10 bg-espresso" aria-labelledby="reservations-heading">
+    <div class="max-w-7xl mx-auto">
+      <div class="max-w-2xl mb-14 reveal">
+        <p class="text-offwhite/60 text-xs font-semibold tracking-wide-xl mb-5">RESERVATIONS</p>
+        <h2 id="reservations-heading" class="font-display text-offwhite text-4xl sm:text-5xl leading-[1.05] mb-6">Make it a moment.</h2>
+        <p class="text-offwhite/65 text-base md:text-lg leading-relaxed max-w-sm">Reserve your table and enjoy coffee the way it was meant to be.</p>
       </div>
 
-      <div class="lg:col-span-6 lg:col-start-7 reveal reveal-delay-1">
-        <form id="reservation-form" novalidate class="space-y-8">
+      <div class="grid lg:grid-cols-12 gap-12 lg:gap-10 items-start">
+        <div class="lg:col-span-5 reveal">
+          <div class="img-zoom aspect-[16/10] w-full">
+            <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1200&q=80" alt="Intimate café table set for two with warm natural light in the background" class="w-full h-full object-cover" loading="lazy">
+          </div>
+        </div>
+
+        <div class="lg:col-span-6 lg:col-start-7 reveal reveal-delay-1">
+          <form id="reservation-form" novalidate class="space-y-8">
           <div class="grid sm:grid-cols-2 gap-8">
             <div>
               <label for="res-name" class="block text-offwhite/70 text-xs tracking-wide-xl font-semibold mb-3">NAME</label>
@@ -724,6 +768,7 @@
             <p class="text-offwhite text-sm leading-relaxed">Reservation request received. We look forward to seeing you.</p>
           </div>
         </form>
+        </div>
       </div>
     </div>
   </section>
@@ -733,7 +778,7 @@
     <div class="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12 items-center">
       <div class="lg:col-span-5 reveal">
         <p class="text-coffee text-xs font-semibold tracking-wide-xl mb-5">COME FIND US</p>
-        <h2 id="location-heading" class="font-display text-4xl sm:text-5xl md:text-6xl leading-[1.05] mb-9">Your table is waiting.</h2>
+        <h2 id="location-heading" class="font-display text-4xl sm:text-5xl leading-[1.05] mb-9">Your table is waiting.</h2>
 
         <div class="space-y-8">
           <div class="flex gap-4">
@@ -758,15 +803,7 @@
       </div>
 
       <div class="lg:col-span-6 lg:col-start-7 reveal reveal-delay-1">
-        <div class="map-fake relative aspect-[4/3] w-full flex items-center justify-center border border-espresso/10">
-          <div class="flex flex-col items-center gap-3">
-            <div class="ring-mark bg-offwhite">
-              <i data-lucide="coffee" class="w-6 h-6 text-coffee"></i>
-            </div>
-            <span class="font-display text-lg">Brew &amp; Bean</span>
-            <span class="text-espresso/50 text-sm">42 Market Street, Downtown</span>
-          </div>
-        </div>
+        <div id="map" class="w-full h-[320px] md:h-[440px] overflow-hidden border border-espresso/10" role="application" aria-label="Map showing Brew & Bean at 42 Market Street, Downtown"></div>
       </div>
     </div>
   </section>
@@ -972,6 +1009,41 @@
     document.querySelectorAll('.error-text').forEach(el => el.classList.add('hidden'));
     resSuccess.classList.remove('hidden');
   });
+
+  // LOCATION MAP (Leaflet / OpenStreetMap — no API key required)
+  if (document.getElementById('map') && window.L) {
+    const brewLat = 40.7075;
+    const brewLng = -74.0021;
+
+    const map = L.map('map', {
+      scrollWheelZoom: false,
+      zoomControl: true,
+    }).setView([brewLat, brewLng], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
+      maxZoom: 19,
+    }).addTo(map);
+
+    const pinIcon = L.divIcon({
+      className: '',
+      html: '<div class="map-pin-marker"><i data-lucide="coffee"></i></div>',
+      iconSize: [36, 36],
+      iconAnchor: [18, 34],
+      popupAnchor: [0, -32],
+    });
+
+    L.marker([brewLat, brewLng], { icon: pinIcon, alt: 'Brew & Bean, 42 Market Street, Downtown' })
+      .addTo(map)
+      .bindPopup('<strong>Brew &amp; Bean</strong><br>42 Market Street, Downtown')
+      .openPopup();
+
+    // Re-render the lucide icon inside the marker (created after lucide.createIcons() ran)
+    if (window.lucide) lucide.createIcons();
+
+    // Re-enable scroll zoom once the user intentionally interacts with the map
+    map.on('click', () => map.scrollWheelZoom.enable());
+  }
 
   // NEWSLETTER FORM
   const newsletterForm = document.getElementById('newsletter-form');
