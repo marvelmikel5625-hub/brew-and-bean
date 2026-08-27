@@ -1,1018 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Brew &amp; Bean — Specialty Coffee &amp; Slow Moments</title>
-<meta name="description" content="Discover exceptional specialty coffee, freshly baked pastries, breakfast and warm café moments at Brew &amp; Bean.">
-
-<!-- Open Graph -->
-<meta property="og:title" content="Brew &amp; Bean — Specialty Coffee &amp; Slow Moments">
-<meta property="og:description" content="Discover exceptional specialty coffee, freshly baked pastries, breakfast and warm café moments at Brew &amp; Bean.">
-<meta property="og:type" content="website">
-<meta property="og:image" content="https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=1200&q=80">
-
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☕</text></svg>">
-
-<!-- Fonts -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-
-<!-- Tailwind -->
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          espresso: '#241A16',
-          coffee: '#5A4032',
-          cream: '#F5EFE6',
-          beige: '#D8C7B5',
-          offwhite: '#FCFAF7',
-          sage: '#7C8872',
-        },
-        fontFamily: {
-          display: ['"Playfair Display"', 'serif'],
-          body: ['Inter', 'sans-serif'],
-        },
-      },
-    },
-  };
-</script>
-
-<!-- Lucide Icons -->
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-
-<!-- Leaflet (OpenStreetMap) -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<style>
-  :root{
-    --espresso:#241A16;
-    --coffee:#5A4032;
-    --cream:#F5EFE6;
-    --beige:#D8C7B5;
-    --offwhite:#FCFAF7;
-    --sage:#7C8872;
-  }
-
-  html{ scroll-behavior:smooth; }
-
-  body{
-    background:var(--offwhite);
-    color:var(--espresso);
-    font-family:'Inter', sans-serif;
-    -webkit-font-smoothing:antialiased;
-  }
-
-  h1,h2,h3,h4, .font-display{ font-family:'Playfair Display', serif; }
-
-  ::selection{ background:var(--beige); color:var(--espresso); }
-
-  /* Focus states */
-  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible{
-    outline:2px solid var(--coffee);
-    outline-offset:3px;
-    border-radius:2px;
-  }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar{ width:10px; }
-  ::-webkit-scrollbar-track{ background:var(--cream); }
-  ::-webkit-scrollbar-thumb{ background:var(--beige); border-radius:6px; }
-
-  /* Reveal on scroll */
-  .reveal{
-    opacity:0;
-    transform:translateY(28px);
-    transition:opacity .9s cubic-bezier(.22,.61,.36,1), transform .9s cubic-bezier(.22,.61,.36,1);
-  }
-  .reveal.is-visible{ opacity:1; transform:translateY(0); }
-  .reveal-delay-1{ transition-delay:.1s; }
-  .reveal-delay-2{ transition-delay:.2s; }
-  .reveal-delay-3{ transition-delay:.3s; }
-
-  @media (prefers-reduced-motion: reduce){
-    html{ scroll-behavior:auto; }
-    .reveal{ opacity:1 !important; transform:none !important; transition:none !important; }
-  }
-
-  /* Navbar */
-  #navbar{
-    transition:background-color .5s ease, box-shadow .5s ease, border-color .5s ease, padding .4s ease;
-    background-color: rgba(252,250,247,0);
-    border-bottom:1px solid transparent;
-  }
-  #navbar.scrolled{
-    background-color: rgba(252,250,247,.88);
-    backdrop-filter:blur(14px);
-    -webkit-backdrop-filter:blur(14px);
-    border-bottom:1px solid rgba(36,26,22,.08);
-    box-shadow:0 8px 30px -20px rgba(36,26,22,.4);
-  }
-  .nav-link{
-    position:relative;
-    letter-spacing:.02em;
-  }
-  .nav-link::after{
-    content:'';
-    position:absolute;
-    left:0; bottom:-4px;
-    width:0%; height:1px;
-    background:currentColor;
-    transition:width .35s ease;
-  }
-  .nav-link:hover::after{ width:100%; }
-
-  /* Mobile menu */
-  #mobile-menu{
-    max-height:0;
-    overflow:hidden;
-    transition:max-height .5s cubic-bezier(.22,.61,.36,1);
-  }
-  #mobile-menu.open{ max-height:520px; }
-
-  /* Buttons — one consistent system: height, padding and radius set via utility
-     classes in markup (px-8 py-4 / px-6 py-3), color + motion handled here. */
-  .btn-primary,
-  .btn-outline,
-  .btn-outline-dark{
-    border-radius:3px;
-    letter-spacing:.03em;
-  }
-
-  .btn-primary{
-    background:var(--espresso);
-    color:var(--offwhite);
-    transition:background-color .35s ease, transform .35s ease, box-shadow .35s ease;
-  }
-  .btn-primary:hover{ background:var(--coffee); transform:translateY(-2px); box-shadow:0 14px 28px -14px rgba(36,26,22,.55); }
-
-  .btn-outline{
-    border:1px solid rgba(252,250,247,.55);
-    color:var(--offwhite);
-    transition:background-color .35s ease, color .35s ease, border-color .35s ease, transform .35s ease;
-  }
-  .btn-outline:hover{ background:var(--offwhite); color:var(--espresso); transform:translateY(-2px); }
-
-  .btn-outline-dark{
-    border:1px solid rgba(36,26,22,.35);
-    color:var(--espresso);
-    transition:background-color .35s ease, color .35s ease, transform .35s ease;
-  }
-  .btn-outline-dark:hover{ background:var(--espresso); color:var(--offwhite); transform:translateY(-2px); }
-
-  .link-underline{
-    background-image:linear-gradient(currentColor,currentColor);
-    background-position:0 100%;
-    background-repeat:no-repeat;
-    background-size:0% 1px;
-    transition:background-size .4s ease;
-    padding-bottom:2px;
-  }
-  .link-underline:hover{ background-size:100% 1px; }
-
-  /* Hero */
-  .hero-bg{
-    background-image:linear-gradient(180deg, rgba(24,17,14,.35) 0%, rgba(24,17,14,.55) 55%, rgba(24,17,14,.82) 100%), url('https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=1920&q=80');
-    background-size:cover;
-    background-position:center 42%;
-    animation:heroZoom 20s ease-in-out infinite alternate;
-  }
-  @keyframes heroZoom{
-    from{ transform:scale(1); }
-    to{ transform:scale(1.06); }
-  }
-  @media (prefers-reduced-motion: reduce){ .hero-bg{ animation:none; } }
-
-  .hero-eyebrow{ letter-spacing:.28em; }
-
-  .scroll-indicator{
-    animation:scrollBounce 2.2s ease-in-out infinite;
-  }
-  @keyframes scrollBounce{
-    0%,100%{ transform:translateY(0); opacity:.7; }
-    50%{ transform:translateY(10px); opacity:1; }
-  }
-
-  /* Image hover zoom */
-  .img-zoom{ overflow:hidden; }
-  .img-zoom img{ transition:transform 1.1s cubic-bezier(.22,.61,.36,1), filter .6s ease; }
-  .img-zoom:hover img{ transform:scale(1.08); }
-
-  /* Coffee ring signature mark */
-  .ring-mark{
-    width:64px; height:64px;
-    border:1px solid var(--coffee);
-    border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    position:relative;
-  }
-  .ring-mark::before{
-    content:'';
-    position:absolute;
-    inset:8px;
-    border:1px solid rgba(90,64,50,.35);
-    border-radius:50%;
-  }
-
-  .divider-line{
-    width:48px; height:1px;
-    background:var(--coffee);
-  }
-
-  /* Menu tabs */
-  .tab-btn{
-    position:relative;
-    transition:color .35s ease;
-  }
-  .tab-btn::after{
-    content:'';
-    position:absolute;
-    left:50%; bottom:-10px;
-    width:0; height:2px;
-    background:var(--espresso);
-    transform:translateX(-50%);
-    transition:width .4s cubic-bezier(.22,.61,.36,1);
-  }
-  .tab-btn.active{ color:var(--espresso); }
-  .tab-btn.active::after{ width:28px; }
-  .tab-btn:not(.active){ color:rgba(36,26,22,.45); }
-
-  .menu-panel{ display:none; }
-  .menu-panel.active{ display:block; }
-
-  .menu-item{
-    opacity:0; transform:translateY(10px);
-    animation:menuItemIn .55s ease forwards;
-  }
-  @keyframes menuItemIn{ to{ opacity:1; transform:translateY(0); } }
-
-  .menu-row{
-    border-bottom:1px solid rgba(36,26,22,.1);
-  }
-  .menu-row:last-child{ border-bottom:none; }
-  .dot-leader{
-    flex:1;
-    border-bottom:1px dotted rgba(36,26,22,.28);
-    margin:0 .75rem;
-    transform:translateY(-4px);
-  }
-
-  /* Gallery */
-  .gallery-item{ position:relative; overflow:hidden; cursor:pointer; }
-  .gallery-item img{ transition:transform 1s cubic-bezier(.22,.61,.36,1); }
-  .gallery-item:hover img{ transform:scale(1.09); }
-  .gallery-overlay{
-    position:absolute; inset:0;
-    background:linear-gradient(0deg, rgba(24,17,14,.72) 0%, rgba(24,17,14,0) 55%);
-    opacity:0;
-    transition:opacity .45s ease;
-    display:flex; align-items:flex-end;
-  }
-  .gallery-item:hover .gallery-overlay{ opacity:1; }
-  .gallery-label{
-    transform:translateY(10px);
-    opacity:0;
-    transition:transform .45s ease .05s, opacity .45s ease .05s;
-  }
-  .gallery-item:hover .gallery-label{ transform:translateY(0); opacity:1; }
-
-  /* Testimonial quote mark */
-  .quote-mark{
-    font-family:'Playfair Display', serif;
-    font-style:italic;
-    color:var(--beige);
-    line-height:1;
-  }
-
-  /* Form fields */
-  .field-input{
-    background:transparent;
-    border:none;
-    border-bottom:1px solid rgba(36,26,22,.25);
-    transition:border-color .35s ease;
-    color:var(--espresso);
-  }
-  .field-input::placeholder{ color:rgba(36,26,22,.4); }
-  .field-input:focus{ border-color:var(--espresso); outline:none; }
-
-  .field-input-light{
-    background:transparent;
-    border:none;
-    border-bottom:1px solid rgba(252,250,247,.35);
-    color:var(--offwhite);
-    transition:border-color .35s ease;
-  }
-  .field-input-light::placeholder{ color:rgba(252,250,247,.5); }
-  .field-input-light:focus{ border-color:var(--offwhite); outline:none; }
-
-  .form-success{
-    animation:fadeUp .6s cubic-bezier(.22,.61,.36,1) forwards;
-  }
-  @keyframes fadeUp{
-    from{ opacity:0; transform:translateY(14px); }
-    to{ opacity:1; transform:translateY(0); }
-  }
-
-  .error-text{ color:#9c4a3f; }
-
-  /* Real map (Leaflet / OpenStreetMap) */
-  #map{
-    filter:sepia(8%) saturate(85%) brightness(97%);
-  }
-  #map .leaflet-popup-content-wrapper{
-    background:var(--offwhite);
-    color:var(--espresso);
-    border-radius:2px;
-    box-shadow:0 12px 30px -14px rgba(36,26,22,.45);
-  }
-  #map .leaflet-popup-content{
-    font-family:'Inter', sans-serif;
-    margin:12px 14px;
-  }
-  #map .leaflet-popup-content strong{
-    font-family:'Playfair Display', serif;
-    font-size:1rem;
-  }
-  #map .leaflet-popup-tip{ background:var(--offwhite); }
-  #map .leaflet-control-zoom a{
-    color:var(--espresso) !important;
-    font-family:'Inter', sans-serif;
-  }
-  .map-pin-marker{
-    width:36px; height:36px;
-    display:flex; align-items:center; justify-content:center;
-    background:var(--espresso);
-    border-radius:50% 50% 50% 0;
-    transform:rotate(-45deg);
-    box-shadow:0 8px 18px -6px rgba(36,26,22,.55);
-  }
-  .map-pin-marker i{ transform:rotate(45deg); color:var(--offwhite); width:16px; height:16px; }
-
-  /* Utility */
-  .tracking-wide-xl{ letter-spacing:.2em; }
-  .section-pad{ padding-top:7rem; padding-bottom:7rem; }
-  @media (max-width:768px){ .section-pad{ padding-top:4.5rem; padding-bottom:4.5rem; } }
-</style>
-</head>
-
-<body class="bg-offwhite text-espresso font-body antialiased">
-
-<!-- Skip link -->
-<a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-espresso focus:text-offwhite focus:px-4 focus:py-2 focus:rounded">Skip to content</a>
-
-<!-- NAVBAR -->
-<header id="navbar" class="fixed top-0 left-0 right-0 z-50">
-  <nav class="max-w-7xl mx-auto flex items-center justify-between px-6 md:px-10 py-5" aria-label="Primary">
-    <a href="#home" class="font-display text-xl md:text-2xl tracking-wide text-espresso" aria-label="Brew & Bean home">BREW <span class="text-coffee">&amp;</span> BEAN</a>
-
-    <ul class="hidden lg:flex items-center gap-10 text-sm font-medium text-espresso">
-      <li><a href="#home" class="nav-link">Home</a></li>
-      <li><a href="#menu" class="nav-link">Menu</a></li>
-      <li><a href="#story" class="nav-link">Our Story</a></li>
-      <li><a href="#gallery" class="nav-link">Gallery</a></li>
-      <li><a href="#reservations" class="nav-link">Reservations</a></li>
-    </ul>
-
-    <a href="#reservations" class="hidden lg:inline-flex btn-primary text-sm font-medium px-6 py-3 tracking-wide">Book a Table</a>
-
-    <button id="menu-toggle" class="lg:hidden text-espresso" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
-      <i data-lucide="menu" id="icon-menu" class="w-7 h-7"></i>
-      <i data-lucide="x" id="icon-close" class="w-7 h-7 hidden"></i>
-    </button>
-  </nav>
-
-  <div id="mobile-menu" class="lg:hidden bg-offwhite/98 backdrop-blur border-t border-espresso/10">
-    <ul class="flex flex-col px-6 py-6 gap-5 text-base font-medium">
-      <li><a href="#home" class="mobile-link block">Home</a></li>
-      <li><a href="#menu" class="mobile-link block">Menu</a></li>
-      <li><a href="#story" class="mobile-link block">Our Story</a></li>
-      <li><a href="#gallery" class="mobile-link block">Gallery</a></li>
-      <li><a href="#reservations" class="mobile-link block">Reservations</a></li>
-      <li class="pt-2"><a href="#reservations" class="mobile-link btn-primary inline-block px-6 py-3 text-sm">Book a Table</a></li>
-    </ul>
-  </div>
-</header>
-
-<main id="main">
-
-  <!-- HERO -->
-  <section id="home" class="relative h-screen min-h-[640px] w-full flex items-end md:items-center overflow-hidden">
-    <div class="hero-bg absolute inset-0 -z-10"></div>
-    <div class="relative max-w-7xl mx-auto w-full px-6 md:px-10 pb-24 md:pb-0">
-      <p class="hero-eyebrow text-offwhite/80 text-xs md:text-sm font-medium mb-6">SPECIALTY COFFEE &bull; FRESHLY BAKED &bull; DAILY</p>
-      <h1 class="font-display text-offwhite text-[13vw] leading-[0.98] sm:text-6xl md:text-7xl lg:text-8xl md:leading-[0.95] max-w-4xl">
-        Good coffee.<br><span class="italic font-normal">Slow moments.</span>
-      </h1>
-      <p class="text-offwhite/85 text-base md:text-lg mt-7 max-w-md leading-relaxed">
-        Specialty coffee, freshly baked pastries, and good food made for your everyday moments.
-      </p>
-      <div class="flex flex-col sm:flex-row gap-4 mt-10">
-        <a href="#menu" class="btn-primary text-center px-8 py-4 text-sm font-medium tracking-wide">Explore Our Menu</a>
-        <a href="#reservations" class="btn-outline text-center px-8 py-4 text-sm font-medium tracking-wide">Book a Table</a>
-      </div>
-    </div>
-    <div class="scroll-indicator absolute bottom-8 left-1/2 -translate-x-1/2 hidden md:flex flex-col items-center gap-2 text-offwhite/70">
-      <span class="text-[10px] tracking-[0.3em]">SCROLL</span>
-      <i data-lucide="arrow-down" class="w-4 h-4"></i>
-    </div>
-  </section>
-
-  <!-- INTRO -->
-  <section class="section-pad px-6 md:px-10 bg-offwhite" aria-labelledby="intro-heading">
-    <div class="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-      <div class="lg:col-span-6 lg:col-start-1 reveal order-2 lg:order-1">
-        <p class="text-coffee text-xs font-semibold tracking-wide-xl mb-5">WELCOME TO BREW &amp; BEAN</p>
-        <h2 id="intro-heading" class="font-display text-4xl sm:text-5xl md:text-6xl leading-[1.05] mb-7">Coffee made<br>with intention.</h2>
-        <p class="text-espresso/70 text-base md:text-lg leading-relaxed max-w-md mb-9">
-          From carefully selected beans to the final pour, every cup is prepared with patience, precision, and a passion for great coffee.
-        </p>
-        <a href="#story" class="link-underline font-medium text-sm tracking-wide inline-flex items-center gap-2">Discover Our Story <i data-lucide="arrow-right" class="w-4 h-4"></i></a>
-      </div>
-      <div class="lg:col-span-5 lg:col-start-8 order-1 lg:order-2 reveal reveal-delay-1">
-        <div class="img-zoom rounded-none aspect-[4/5] md:aspect-[3/4.3] w-full max-w-md ml-auto">
-          <img src="https://images.unsplash.com/photo-1442550528053-c431ecb55509?auto=format&fit=crop&w=1000&q=80" alt="Barista carefully pouring milk to create latte art in a warm, sunlit café" class="w-full h-full object-cover" loading="lazy">
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- SIGNATURE COFFEE -->
-  <section class="section-pad px-6 md:px-10 bg-cream" aria-labelledby="signature-heading">
-    <div class="max-w-7xl mx-auto">
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 reveal">
-        <div>
-          <p class="text-coffee text-xs font-semibold tracking-wide-xl mb-5">OUR SIGNATURES</p>
-          <h2 id="signature-heading" class="font-display text-4xl sm:text-5xl leading-[1.05]">Your next favorite cup.</h2>
-        </div>
-        <p class="text-espresso/60 max-w-xs text-sm leading-relaxed">Three drinks that define who we are — balanced, honest, and made to order.</p>
-      </div>
-
-      <div class="grid md:grid-cols-3 gap-10 md:gap-8">
-        <article class="reveal group">
-          <div class="img-zoom aspect-[4/5] mb-6">
-            <img src="https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?auto=format&fit=crop&w=900&q=80" alt="A single shot of rich espresso in a small ceramic cup on a dark wooden table" class="w-full h-full object-cover" loading="lazy">
-          </div>
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <span class="font-display italic text-coffee text-sm">I.</span>
-              <h3 class="font-display text-2xl mt-1">Espresso</h3>
-              <p class="text-espresso/55 group-hover:text-espresso/85 transition-colors duration-300 text-sm mt-2 max-w-[22ch]">Rich, balanced and intense.</p>
-            </div>
-            <span class="font-display text-lg mt-1 shrink-0">$3.50</span>
-          </div>
-        </article>
-
-        <article class="reveal reveal-delay-1 group">
-          <div class="img-zoom aspect-[4/5] mb-6">
-            <img src="https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=900&q=80" alt="Cappuccino with silky milk foam and a heart-shaped latte art pattern" class="w-full h-full object-cover" loading="lazy">
-          </div>
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <span class="font-display italic text-coffee text-sm">II.</span>
-              <h3 class="font-display text-2xl mt-1">Cappuccino</h3>
-              <p class="text-espresso/55 group-hover:text-espresso/85 transition-colors duration-300 text-sm mt-2 max-w-[22ch]">Silky milk foam with our signature espresso.</p>
-            </div>
-            <span class="font-display text-lg mt-1 shrink-0">$5.00</span>
-          </div>
-        </article>
-
-        <article class="reveal reveal-delay-2 group">
-          <div class="img-zoom aspect-[4/5] mb-6">
-            <img src="https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=900&q=80" alt="Iced latte with layered espresso and cold milk in a tall glass" class="w-full h-full object-cover" loading="lazy">
-          </div>
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <span class="font-display italic text-coffee text-sm">III.</span>
-              <h3 class="font-display text-2xl mt-1">Iced Latte</h3>
-              <p class="text-espresso/55 group-hover:text-espresso/85 transition-colors duration-300 text-sm mt-2 max-w-[22ch]">Smooth espresso, cold milk and a touch of sweetness.</p>
-            </div>
-            <span class="font-display text-lg mt-1 shrink-0">$5.50</span>
-          </div>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <!-- MENU -->
-  <section id="menu" class="section-pad px-6 md:px-10 bg-offwhite" aria-labelledby="menu-heading">
-    <div class="max-w-4xl mx-auto text-center mb-14 reveal">
-      <p class="text-coffee text-xs font-semibold tracking-wide-xl mb-5">THE MENU</p>
-      <h2 id="menu-heading" class="font-display text-4xl sm:text-5xl leading-[1.05]">Something for<br class="sm:hidden"> every hour.</h2>
-    </div>
-
-    <div class="max-w-3xl mx-auto reveal reveal-delay-1">
-      <div class="flex flex-wrap justify-center gap-8 md:gap-12 border-b border-espresso/10 pb-6 mb-10" role="tablist" aria-label="Menu categories">
-        <button class="tab-btn active font-display text-lg md:text-xl" data-tab="coffee" role="tab" aria-selected="true" aria-controls="panel-coffee" id="tab-coffee">Coffee</button>
-        <button class="tab-btn font-display text-lg md:text-xl" data-tab="breakfast" role="tab" aria-selected="false" aria-controls="panel-breakfast" id="tab-breakfast">Breakfast</button>
-        <button class="tab-btn font-display text-lg md:text-xl" data-tab="pastries" role="tab" aria-selected="false" aria-controls="panel-pastries" id="tab-pastries">Pastries</button>
-        <button class="tab-btn font-display text-lg md:text-xl" data-tab="desserts" role="tab" aria-selected="false" aria-controls="panel-desserts" id="tab-desserts">Desserts</button>
-      </div>
-
-      <div id="panel-coffee" class="menu-panel active" role="tabpanel" aria-labelledby="tab-coffee">
-        <ul>
-          <li class="menu-row flex items-baseline py-5 menu-item" style="animation-delay:.02s">
-            <span class="font-display text-lg">Espresso</span><span class="dot-leader" aria-hidden="true"></span><span class="text-espresso/70">$3.50</span>
-          </li>
-          <li class="menu-row flex items-baseline py-5 menu-item" style="animation-delay:.08s">
-            <span class="font-display text-lg">Cappuccino</span><span class="dot-leader" aria-hidden="true"></span><span class="text-espresso/70">$5.00</span>
-          </li>
-          <li class="menu-row flex items-baseline py-5 menu-item" style="animation-delay:.14s">
-            <span class="font-display text-lg">Flat White</span><span class="dot-leader" aria-hidden="true"></span><span class="text-espresso/70">$5.25</span>
-          </li>
-          <li class="menu-row flex items-baseline py-5 menu-item" style="animation-delay:.2s">
-            <span class="font-display text-lg">Vanilla Latte</span><span class="dot-leader" aria-hidden="true"></span><span class="text-espresso/70">$5.75</span>
-          </li>
-          <li class="menu-row flex items-baseline py-5 menu-item" style="animation-delay:.26s">
-            <span class="font-display text-lg">Iced Mocha</span><span class="dot-leader" aria-hidden="true"></span><span class="text-espresso/70">$6.00</span>
-          </li>
-        </ul>
-      </div>
-
-      <div id="panel-breakfast" class="menu-panel" role="tabpanel" aria-labelledby="tab-breakfast">
-        <ul>
-          <li class="menu-row flex items-baseline py-5 menu-item" style="animation-delay:.02s">
-            <span class="font-display text-lg">Avocado Toast</span><span class="dot-leader" aria-hidden="true"></span><span class="text-espresso/70">$9.50</span>
-          </li>
-          <li class="menu-row flex items-baseline py-5 menu-item" style="animation-delay:.08s">
-            <span class="font-display text-lg">Classic Pancakes</span><span class="dot-leader" aria-hidden="true"></span><span class="text-espresso/70">$10.00</span>
-          </li>
-          <li class="menu-row flex items-baseline py-5 menu-item" style="animation-delay:.14s">
-            <span class="font-display text-lg">Breakfast Bowl</span><span class="dot-leader" aria-hidden="true"></span><span class="text-espresso/70">$11.00</span>
-          </li>
-        </ul>
-      </div>
-
-      <div id="panel-pastries" class="menu-panel" role="tabpanel" aria-labelledby="tab-pastries">
-        <ul>
-          <li class="menu-row flex items-baseline py-5 menu-item" style="animation-delay:.02s">
-            <span class="font-display text-lg">Butter Croissant</span><span class="dot-leader" aria-hidden="true"></span><span class="text-espresso/70">$4.25</span>
-          </li>
-          <li class="menu-row flex items-baseline py-5 menu-item" style="animation-delay:.08s">
-            <span class="font-display text-lg">Almond Croissant</span><span class="dot-leader" aria-hidden="true"></span><span class="text-espresso/70">$5.00</span>
-          </li>
-          <li class="menu-row flex items-baseline py-5 menu-item" style="animation-delay:.14s">
-            <span class="font-display text-lg">Cinnamon Roll</span><span class="dot-leader" aria-hidden="true"></span><span class="text-espresso/70">$4.75</span>
-          </li>
-        </ul>
-      </div>
-
-      <div id="panel-desserts" class="menu-panel" role="tabpanel" aria-labelledby="tab-desserts">
-        <ul>
-          <li class="menu-row flex items-baseline py-5 menu-item" style="animation-delay:.02s">
-            <span class="font-display text-lg">Chocolate Tart</span><span class="dot-leader" aria-hidden="true"></span><span class="text-espresso/70">$6.50</span>
-          </li>
-          <li class="menu-row flex items-baseline py-5 menu-item" style="animation-delay:.08s">
-            <span class="font-display text-lg">Tiramisu</span><span class="dot-leader" aria-hidden="true"></span><span class="text-espresso/70">$7.00</span>
-          </li>
-          <li class="menu-row flex items-baseline py-5 menu-item" style="animation-delay:.14s">
-            <span class="font-display text-lg">Basque Cheesecake</span><span class="dot-leader" aria-hidden="true"></span><span class="text-espresso/70">$7.50</span>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <!-- CRAFT -->
-  <section id="story" class="section-pad px-6 md:px-10 bg-cream" aria-labelledby="craft-heading">
-    <div class="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12 items-center">
-      <div class="lg:col-span-6 reveal">
-        <div class="img-zoom aspect-[4/5] w-full">
-          <img src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1100&q=80" alt="Close-up of latte art being poured, milk swirling into espresso" class="w-full h-full object-cover" loading="lazy">
-        </div>
-      </div>
-      <div class="lg:col-span-5 lg:col-start-8 reveal reveal-delay-1">
-        <p class="text-coffee text-xs font-semibold tracking-wide-xl mb-5">THE CRAFT</p>
-        <h2 id="craft-heading" class="font-display text-4xl sm:text-5xl md:text-6xl leading-[1.05] mb-7">Crafted,<br>not rushed.</h2>
-        <p class="text-espresso/70 text-base md:text-lg leading-relaxed max-w-md mb-9">
-          We believe great coffee deserves time. From sourcing exceptional beans to perfecting every extraction, we focus on the details that turn a simple cup into something worth remembering.
-        </p>
-        <a href="#gallery" class="link-underline font-medium text-sm tracking-wide inline-flex items-center gap-2">Our Coffee Story <i data-lucide="arrow-right" class="w-4 h-4"></i></a>
-      </div>
-    </div>
-  </section>
-
-  <!-- FOOD -->
-  <section class="section-pad px-6 md:px-10 bg-offwhite" aria-labelledby="food-heading">
-    <div class="max-w-7xl mx-auto">
-      <div class="max-w-2xl mb-14 reveal">
-        <p class="text-coffee text-xs font-semibold tracking-wide-xl mb-5">FROM THE KITCHEN</p>
-        <h2 id="food-heading" class="font-display text-4xl sm:text-5xl leading-[1.05]">More than coffee.</h2>
-      </div>
-
-      <div class="grid grid-cols-2 md:grid-cols-6 gap-4 md:gap-5">
-        <div class="col-span-2 md:col-span-3 row-span-2 img-zoom aspect-[4/5] md:aspect-auto reveal">
-          <img src="https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=1000&q=80" alt="Golden, flaky butter croissant on a rustic plate" class="w-full h-full object-cover" loading="lazy">
-        </div>
-        <div class="col-span-1 md:col-span-3 img-zoom aspect-square reveal reveal-delay-1">
-          <img src="https://images.unsplash.com/photo-1541519227354-08fa5d50c44d?auto=format&fit=crop&w=900&q=80" alt="Avocado toast topped with seeds and microgreens" class="w-full h-full object-cover" loading="lazy">
-        </div>
-        <div class="col-span-1 md:col-span-3 img-zoom aspect-square reveal reveal-delay-2">
-          <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=900&q=80" alt="Stack of pancakes with syrup and fresh berries" class="w-full h-full object-cover" loading="lazy">
-        </div>
-        <div class="col-span-2 md:col-span-2 img-zoom aspect-[5/4] reveal">
-          <img src="https://images.unsplash.com/photo-1494859802809-d069c3b71a8a?auto=format&fit=crop&w=900&q=80" alt="Breakfast bowl with yogurt, granola and fresh fruit" class="w-full h-full object-cover" loading="lazy">
-        </div>
-        <div class="col-span-1 md:col-span-2 img-zoom aspect-square reveal reveal-delay-1">
-          <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80" alt="Assorted fresh pastries arranged on a bakery tray" class="w-full h-full object-cover" loading="lazy">
-        </div>
-        <div class="col-span-1 md:col-span-2 img-zoom aspect-square reveal reveal-delay-2">
-          <img src="https://images.unsplash.com/photo-1481070555726-e2fe8357725c?auto=format&fit=crop&w=900&q=80" alt="Gourmet sandwich sliced and plated with a side salad" class="w-full h-full object-cover" loading="lazy">
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ATMOSPHERE -->
-  <section class="section-pad px-6 md:px-10 bg-cream" aria-labelledby="atmosphere-heading">
-    <div class="max-w-7xl mx-auto reveal">
-      <div class="relative w-full aspect-[21/9] min-h-[280px] overflow-hidden">
-        <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1920&q=80" alt="Modern coffee shop interior with warm wood tones, pendant lighting and guests relaxing" class="absolute inset-0 w-full h-full object-cover" loading="lazy">
-        <div class="absolute inset-0 bg-gradient-to-t from-espresso/85 via-espresso/25 to-transparent"></div>
-        <div class="relative h-full flex flex-col justify-end px-6 md:px-12 pb-8 md:pb-12">
-          <p class="text-offwhite/75 text-xs font-semibold tracking-wide-xl mb-4">YOUR NEW FAVORITE CORNER</p>
-          <h2 id="atmosphere-heading" class="font-display text-offwhite text-3xl sm:text-4xl md:text-5xl leading-[1.05] max-w-xl mb-6">Come for the coffee.<br>Stay for the atmosphere.</h2>
-          <a href="#location" class="btn-outline inline-flex w-fit px-7 py-3.5 text-sm font-medium tracking-wide">Visit Us →</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- GALLERY -->
-  <section id="gallery" class="section-pad px-6 md:px-10 bg-offwhite" aria-labelledby="gallery-heading">
-    <div class="max-w-7xl mx-auto">
-      <div class="max-w-2xl mb-14 reveal">
-        <p class="text-coffee text-xs font-semibold tracking-wide-xl mb-5">A LOOK INSIDE</p>
-        <h2 id="gallery-heading" class="font-display text-4xl sm:text-5xl leading-[1.05]">Moments, brewed daily.</h2>
-      </div>
-
-      <div class="grid grid-cols-2 md:grid-cols-4 auto-rows-[180px] md:auto-rows-[220px] gap-4">
-        <div class="gallery-item col-span-1 row-span-2 reveal">
-          <img src="https://images.unsplash.com/photo-1521017432531-fbd92d768814?auto=format&fit=crop&w=800&q=80" alt="Barista pouring latte art at the espresso bar" class="w-full h-full object-cover" loading="lazy">
-          <div class="gallery-overlay p-4"><span class="gallery-label text-offwhite text-xs tracking-wide-xl font-semibold">THE BAR</span></div>
-        </div>
-        <div class="gallery-item col-span-1 row-span-1 reveal reveal-delay-1">
-          <img src="https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&w=800&q=80" alt="Freshly pulled espresso shot with rich crema" class="w-full h-full object-cover" loading="lazy">
-          <div class="gallery-overlay p-4"><span class="gallery-label text-offwhite text-xs tracking-wide-xl font-semibold">MORNING COFFEE</span></div>
-        </div>
-        <div class="gallery-item col-span-1 row-span-1 reveal reveal-delay-2">
-          <img src="https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=800&q=80" alt="Close-up of freshly roasted coffee beans" class="w-full h-full object-cover" loading="lazy">
-        </div>
-        <div class="gallery-item col-span-1 row-span-2 reveal">
-          <img src="https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?auto=format&fit=crop&w=800&q=80" alt="Fresh pastries fresh out of the oven on a wooden board" class="w-full h-full object-cover" loading="lazy">
-          <div class="gallery-overlay p-4"><span class="gallery-label text-offwhite text-xs tracking-wide-xl font-semibold">FRESH FROM THE OVEN</span></div>
-        </div>
-        <div class="gallery-item col-span-1 row-span-1 reveal reveal-delay-1">
-          <img src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80" alt="Sunlit modern café interior with wooden tables and greenery" class="w-full h-full object-cover" loading="lazy">
-          <div class="gallery-overlay p-4"><span class="gallery-label text-offwhite text-xs tracking-wide-xl font-semibold">THE CAFÉ</span></div>
-        </div>
-        <div class="gallery-item col-span-1 row-span-1 reveal reveal-delay-2">
-          <img src="https://images.unsplash.com/photo-1522992319-0365e5f11656?auto=format&fit=crop&w=800&q=80" alt="Friends sharing coffee and conversation at a café table" class="w-full h-full object-cover" loading="lazy">
-        </div>
-        <div class="gallery-item col-span-1 row-span-1 reveal">
-          <img src="https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=800&q=80" alt="Slice of tiramisu dessert plated elegantly" class="w-full h-full object-cover" loading="lazy">
-        </div>
-        <div class="gallery-item col-span-1 row-span-1 reveal reveal-delay-1">
-          <img src="https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=800&q=80" alt="Hands carefully preparing a pour-over coffee" class="w-full h-full object-cover" loading="lazy">
-          <div class="gallery-overlay p-4"><span class="gallery-label text-offwhite text-xs tracking-wide-xl font-semibold">SLOW MORNINGS</span></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- TESTIMONIALS -->
-  <section class="section-pad px-6 md:px-10 bg-cream" aria-labelledby="testimonials-heading">
-    <div class="max-w-7xl mx-auto">
-      <div class="text-center max-w-2xl mx-auto mb-16 reveal">
-        <p class="text-coffee text-xs font-semibold tracking-wide-xl mb-5">WHAT PEOPLE SAY</p>
-        <h2 id="testimonials-heading" class="font-display text-4xl leading-[1.05]">Loved by coffee people.</h2>
-      </div>
-
-      <div class="grid md:grid-cols-3 gap-10 md:gap-8">
-        <figure class="reveal">
-          <span class="quote-mark text-6xl block mb-4">&ldquo;</span>
-          <blockquote class="text-lg leading-relaxed text-espresso/85">Beautiful coffee, thoughtful food, and an atmosphere that makes you want to stay all afternoon.</blockquote>
-          <figcaption class="mt-6 text-sm text-espresso/50 font-medium tracking-wide">— Sarah M.</figcaption>
-        </figure>
-        <figure class="reveal reveal-delay-1">
-          <span class="quote-mark text-6xl block mb-4">&ldquo;</span>
-          <blockquote class="text-lg leading-relaxed text-espresso/85">The cappuccino alone is worth the visit. Easily one of my favorite cafés in the city.</blockquote>
-          <figcaption class="mt-6 text-sm text-espresso/50 font-medium tracking-wide">— Daniel R.</figcaption>
-        </figure>
-        <figure class="reveal reveal-delay-2">
-          <span class="quote-mark text-6xl block mb-4">&ldquo;</span>
-          <blockquote class="text-lg leading-relaxed text-espresso/85">The perfect place to slow down, get some work done, and drink genuinely great coffee.</blockquote>
-          <figcaption class="mt-6 text-sm text-espresso/50 font-medium tracking-wide">— Michael T.</figcaption>
-        </figure>
-      </div>
-    </div>
-  </section>
-
-  <!-- RESERVATIONS -->
-  <section id="reservations" class="section-pad px-6 md:px-10 bg-espresso" aria-labelledby="reservations-heading">
-    <div class="max-w-7xl mx-auto">
-      <div class="max-w-2xl mb-14 reveal">
-        <p class="text-offwhite/60 text-xs font-semibold tracking-wide-xl mb-5">RESERVATIONS</p>
-        <h2 id="reservations-heading" class="font-display text-offwhite text-4xl sm:text-5xl leading-[1.05] mb-6">Make it a moment.</h2>
-        <p class="text-offwhite/65 text-base md:text-lg leading-relaxed max-w-sm">Reserve your table and enjoy coffee the way it was meant to be.</p>
-      </div>
-
-      <div class="grid lg:grid-cols-12 gap-12 lg:gap-10 items-start">
-        <div class="lg:col-span-5 reveal">
-          <div class="img-zoom aspect-[16/10] w-full">
-            <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1200&q=80" alt="Intimate café table set for two with warm natural light in the background" class="w-full h-full object-cover" loading="lazy">
-          </div>
-        </div>
-
-        <div class="lg:col-span-6 lg:col-start-7 reveal reveal-delay-1">
-          <form id="reservation-form" novalidate class="space-y-8">
-          <div class="grid sm:grid-cols-2 gap-8">
-            <div>
-              <label for="res-name" class="block text-offwhite/70 text-xs tracking-wide-xl font-semibold mb-3">NAME</label>
-              <input type="text" id="res-name" name="name" class="field-input-light w-full py-2 text-offwhite" placeholder="Your full name" autocomplete="name">
-              <p class="error-text text-xs mt-2 hidden" data-error-for="res-name">Please enter your name.</p>
-            </div>
-            <div>
-              <label for="res-email" class="block text-offwhite/70 text-xs tracking-wide-xl font-semibold mb-3">EMAIL</label>
-              <input type="email" id="res-email" name="email" class="field-input-light w-full py-2 text-offwhite" placeholder="you@example.com" autocomplete="email">
-              <p class="error-text text-xs mt-2 hidden" data-error-for="res-email">Please enter a valid email.</p>
-            </div>
-          </div>
-
-          <div class="grid sm:grid-cols-3 gap-8">
-            <div>
-              <label for="res-date" class="block text-offwhite/70 text-xs tracking-wide-xl font-semibold mb-3">DATE</label>
-              <input type="date" id="res-date" name="date" class="field-input-light w-full py-2 text-offwhite">
-              <p class="error-text text-xs mt-2 hidden" data-error-for="res-date">Choose a date.</p>
-            </div>
-            <div>
-              <label for="res-time" class="block text-offwhite/70 text-xs tracking-wide-xl font-semibold mb-3">TIME</label>
-              <input type="time" id="res-time" name="time" class="field-input-light w-full py-2 text-offwhite">
-              <p class="error-text text-xs mt-2 hidden" data-error-for="res-time">Choose a time.</p>
-            </div>
-            <div>
-              <label for="res-guests" class="block text-offwhite/70 text-xs tracking-wide-xl font-semibold mb-3">GUESTS</label>
-              <input type="number" id="res-guests" name="guests" min="1" max="20" class="field-input-light w-full py-2 text-offwhite" placeholder="2">
-              <p class="error-text text-xs mt-2 hidden" data-error-for="res-guests">Enter number of guests.</p>
-            </div>
-          </div>
-
-          <button type="submit" class="btn-primary w-full sm:w-auto px-10 py-4 text-sm font-medium tracking-wide">Reserve a Table</button>
-
-          <div id="res-success" class="hidden form-success flex items-start gap-3 border border-sage/40 bg-sage/10 px-5 py-4">
-            <i data-lucide="check-circle" class="w-5 h-5 text-sage shrink-0 mt-0.5"></i>
-            <p class="text-offwhite text-sm leading-relaxed">Reservation request received. We look forward to seeing you.</p>
-          </div>
-        </form>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- LOCATION -->
-  <section id="location" class="section-pad px-6 md:px-10 bg-offwhite" aria-labelledby="location-heading">
-    <div class="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12 items-center">
-      <div class="lg:col-span-5 reveal">
-        <p class="text-coffee text-xs font-semibold tracking-wide-xl mb-5">COME FIND US</p>
-        <h2 id="location-heading" class="font-display text-4xl sm:text-5xl leading-[1.05] mb-9">Your table is waiting.</h2>
-
-        <div class="space-y-8">
-          <div class="flex gap-4">
-            <i data-lucide="map-pin" class="w-5 h-5 text-coffee mt-1 shrink-0"></i>
-            <div>
-              <p class="font-medium">42 Market Street</p>
-              <p class="text-espresso/60">Downtown</p>
-            </div>
-          </div>
-          <div class="flex gap-4">
-            <i data-lucide="clock" class="w-5 h-5 text-coffee mt-1 shrink-0"></i>
-            <div class="space-y-1">
-              <p class="font-medium">Monday – Friday</p>
-              <p class="text-espresso/60">7:00 AM – 8:00 PM</p>
-              <p class="font-medium pt-2">Saturday – Sunday</p>
-              <p class="text-espresso/60">8:00 AM – 9:00 PM</p>
-            </div>
-          </div>
-        </div>
-
-        <a href="https://maps.google.com" target="_blank" rel="noopener" class="link-underline font-medium text-sm tracking-wide inline-flex items-center gap-2 mt-9">Get Directions <i data-lucide="arrow-right" class="w-4 h-4"></i></a>
-      </div>
-
-      <div class="lg:col-span-6 lg:col-start-7 reveal reveal-delay-1">
-        <div id="map" class="w-full h-[320px] md:h-[440px] overflow-hidden border border-espresso/10" role="application" aria-label="Map showing Brew & Bean at 42 Market Street, Downtown"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- NEWSLETTER -->
-  <section class="section-pad px-6 md:px-10 bg-espresso" aria-labelledby="newsletter-heading">
-    <div class="max-w-3xl mx-auto text-center reveal">
-      <h2 id="newsletter-heading" class="font-display text-offwhite text-4xl sm:text-5xl leading-[1.05] mb-6">Stay in the loop.</h2>
-      <p class="text-offwhite/65 text-base md:text-lg mb-10 max-w-md mx-auto leading-relaxed">New coffee drops, seasonal menus, and things worth coming back for.</p>
-
-      <form id="newsletter-form" novalidate class="flex flex-col sm:flex-row items-stretch sm:items-end gap-5 max-w-md mx-auto justify-center">
-        <div class="flex-1 text-left">
-          <label for="newsletter-email" class="sr-only">Email address</label>
-          <input type="email" id="newsletter-email" class="field-input-light w-full py-3" placeholder="Your email address" autocomplete="email">
-          <p class="error-text text-xs mt-2 hidden" id="newsletter-error">Please enter a valid email address.</p>
-        </div>
-        <button type="submit" class="btn-outline px-8 py-3 text-sm font-medium tracking-wide whitespace-nowrap">Subscribe</button>
-      </form>
-
-      <div id="newsletter-success" class="hidden form-success mt-6 flex items-center justify-center gap-2 text-sage">
-        <i data-lucide="check-circle" class="w-5 h-5"></i>
-        <p class="text-sm">You're subscribed. Good things brewing soon.</p>
-      </div>
-    </div>
-  </section>
-
-</main>
-
-<!-- FOOTER -->
-<footer class="bg-espresso text-offwhite/70 px-6 md:px-10 pt-20 pb-10">
-  <div class="max-w-7xl mx-auto grid md:grid-cols-4 gap-12 mb-16">
-    <div class="md:col-span-2">
-      <p class="font-display text-2xl text-offwhite mb-3">BREW &amp; BEAN</p>
-      <p class="text-sm max-w-xs leading-relaxed">Good coffee. Slow moments.</p>
-    </div>
-    <div>
-      <p class="text-offwhite text-xs font-semibold tracking-wide-xl mb-5">EXPLORE</p>
-      <ul class="space-y-3 text-sm">
-        <li><a href="#menu" class="link-underline">Menu</a></li>
-        <li><a href="#story" class="link-underline">Our Story</a></li>
-        <li><a href="#gallery" class="link-underline">Gallery</a></li>
-        <li><a href="#reservations" class="link-underline">Reservations</a></li>
-        <li><a href="#location" class="link-underline">Contact</a></li>
-      </ul>
-    </div>
-    <div>
-      <p class="text-offwhite text-xs font-semibold tracking-wide-xl mb-5">FOLLOW</p>
-      <ul class="space-y-3 text-sm">
-        <li><a href="https://instagram.com" target="_blank" rel="noopener" class="link-underline inline-flex items-center gap-2" aria-label="Brew & Bean on Instagram"><i data-lucide="instagram" class="w-4 h-4"></i> Instagram</a></li>
-        <li><a href="https://facebook.com" target="_blank" rel="noopener" class="link-underline inline-flex items-center gap-2" aria-label="Brew & Bean on Facebook"><i data-lucide="facebook" class="w-4 h-4"></i> Facebook</a></li>
-        <li><a href="https://tiktok.com" target="_blank" rel="noopener" class="link-underline inline-flex items-center gap-2" aria-label="Brew & Bean on TikTok"><i data-lucide="music-2" class="w-4 h-4"></i> TikTok</a></li>
-      </ul>
-    </div>
-  </div>
-  <div class="max-w-7xl mx-auto border-t border-offwhite/10 pt-8 text-xs text-offwhite/40">
-    © 2026 Brew &amp; Bean. All rights reserved.
-  </div>
-</footer>
-
-<script>
-  // Lucide icons
-  lucide.createIcons();
-
-  // NAVBAR scroll state
-  const navbar = document.getElementById('navbar');
-  const onScroll = () => {
-    if (window.scrollY > 40) navbar.classList.add('scrolled');
-    else navbar.classList.remove('scrolled');
-  };
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
-
-  // MOBILE MENU
-  const menuToggle = document.getElementById('menu-toggle');
-  const mobileMenu = document.getElementById('mobile-menu');
-  const iconMenu = document.getElementById('icon-menu');
-  const iconClose = document.getElementById('icon-close');
-
-  function closeMobileMenu(){
-    mobileMenu.classList.remove('open');
-    menuToggle.setAttribute('aria-expanded', 'false');
-    iconMenu.classList.remove('hidden');
-    iconClose.classList.add('hidden');
-  }
-
-  menuToggle.addEventListener('click', () => {
-    const isOpen = mobileMenu.classList.toggle('open');
-    menuToggle.setAttribute('aria-expanded', String(isOpen));
-    iconMenu.classList.toggle('hidden', isOpen);
-    iconClose.classList.toggle('hidden', !isOpen);
-  });
-
-  document.querySelectorAll('.mobile-link').forEach(link => {
-    link.addEventListener('click', closeMobileMenu);
-  });
-
-  // SMOOTH SCROLL (native scroll-behavior handles it; ensures focus for a11y)
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function(e){
-      const targetId = this.getAttribute('href');
-      if (targetId.length > 1) {
-        const target = document.querySelector(targetId);
-        if (target) {
-          e.preventDefault();
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          target.setAttribute('tabindex', '-1');
-          target.focus({ preventScroll: true });
-        }
-      }
-    });
-  });
-
-  // SCROLL REVEAL
-  const revealEls = document.querySelectorAll('.reveal');
-  if ('IntersectionObserver' in window) {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-visible');
-          io.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
-    revealEls.forEach(el => io.observe(el));
-  } else {
-    revealEls.forEach(el => el.classList.add('is-visible'));
-  }
-
-  // MENU TABS
-  const tabButtons = document.querySelectorAll('.tab-btn');
-  const panels = document.querySelectorAll('.menu-panel');
-
-  tabButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = btn.getAttribute('data-tab');
-
-      tabButtons.forEach(b => {
-        b.classList.remove('active');
-        b.setAttribute('aria-selected', 'false');
-      });
-      btn.classList.add('active');
-      btn.setAttribute('aria-selected', 'true');
-
-      panels.forEach(p => p.classList.remove('active'));
-      const activePanel = document.getElementById('panel-' + target);
-      activePanel.classList.add('active');
-
-      // restart item animations
-      activePanel.querySelectorAll('.menu-item').forEach(item => {
-        item.style.animation = 'none';
-        void item.offsetWidth;
-        item.style.animation = '';
-      });
-    });
-  });
-
-  // RESERVATION FORM VALIDATION
-  const resForm = document.getElementById('reservation-form');
-  const resSuccess = document.getElementById('res-success');
-
-  function showError(id, show){
-    const errEl = document.querySelector('[data-error-for="' + id + '"]');
-    const inputEl = document.getElementById(id);
-    if (!errEl || !inputEl) return;
-    errEl.classList.toggle('hidden', !show);
-    inputEl.style.borderColor = show ? '#c46a5e' : '';
-  }
-
-  function isValidEmail(value){
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-  }
-
-  resForm.addEventListener('submit', function(e){
-    e.preventDefault();
-    let valid = true;
-
-    const name = document.getElementById('res-name').value.trim();
-    const email = document.getElementById('res-email').value.trim();
-    const date = document.getElementById('res-date').value;
-    const time = document.getElementById('res-time').value;
-    const guests = document.getElementById('res-guests').value;
-
-    showError('res-name', name.length === 0);
-    if (name.length === 0) valid = false;
-
-    showError('res-email', !isValidEmail(email));
-    if (!isValidEmail(email)) valid = false;
-
-    showError('res-date', date.length === 0);
-    if (date.length === 0) valid = false;
-
-    showError('res-time', time.length === 0);
-    if (time.length === 0) valid = false;
-
-    const guestsValid = guests && Number(guests) >= 1;
-    showError('res-guests', !guestsValid);
-    if (!guestsValid) valid = false;
-
-    if (!valid) return;
-
-    resForm.querySelectorAll('input, button[type="submit"]').forEach(el => el.style.display = 'none');
-    resForm.querySelectorAll('label').forEach(el => el.style.display = 'none');
-    document.querySelectorAll('.error-text').forEach(el => el.classList.add('hidden'));
-    resSuccess.classList.remove('hidden');
-  });
-
- <!DOCTYPE html>
-<html lang="en">
-<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brew & Bean | Good Coffee. Slow Moments.</title>
@@ -1022,6 +10,9 @@
     
     <!-- Font Awesome for Social Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
         /* ===== CSS RESET & BASE ===== */
@@ -1053,6 +44,7 @@
             color: var(--ink-espresso);
             line-height: 1.6;
             overflow-x: hidden;
+            cursor: none;
         }
 
         h1, h2, h3, h4 {
@@ -1065,6 +57,147 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 40px;
+        }
+
+        /* ===== CUSTOM CURSOR ===== */
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--burnished-gold);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.1s ease;
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--burnished-gold);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            transition: all 0.2s ease;
+            transform: translate(-50%, -50%);
+        }
+
+        .cursor-outline.hover {
+            width: 60px;
+            height: 60px;
+            background: rgba(176,141,87,0.1);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                cursor: auto;
+            }
+            .cursor-dot, .cursor-outline {
+                display: none;
+            }
+        }
+
+        /* ===== PRELOADER ===== */
+        .preloader {
+            position: fixed;
+            inset: 0;
+            background: var(--ink-espresso);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .preloader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .coffee-cup {
+            width: 60px;
+            height: 60px;
+            border: 3px solid var(--burnished-gold);
+            border-radius: 50%;
+            position: relative;
+            animation: coffeeSpin 1.5s ease-in-out infinite;
+        }
+
+        .coffee-cup::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            background: var(--burnished-gold);
+            border-radius: 50%;
+        }
+
+        @keyframes coffeeSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .preloader-text {
+            color: white;
+            margin-top: 30px;
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            letter-spacing: 0.2em;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ===== SCROLL PROGRESS BAR ===== */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: var(--burnished-gold);
+            z-index: 1001;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        /* ===== BACK TO TOP ===== */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: var(--burnished-gold);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 900;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            background: #9A7A4A;
+            transform: translateY(-5px);
         }
 
         /* ===== UTILITY CLASSES ===== */
@@ -1269,10 +402,17 @@
             background-position: center;
             opacity: 0;
             transition: opacity 1.5s ease;
+            animation: kenBurns 8s ease-out forwards;
         }
 
         .hero-slide.active {
             opacity: 1;
+            animation: kenBurns 8s ease-out forwards;
+        }
+
+        @keyframes kenBurns {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
         }
 
         .hero-slide:nth-child(1) {
@@ -1308,6 +448,9 @@
             font-size: 80px;
             color: white;
             margin: 20px 0;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: heroFadeUp 1s ease forwards 0.3s;
         }
 
         .hero p {
@@ -1315,11 +458,30 @@
             font-size: 18px;
             margin-bottom: 40px;
             font-weight: 300;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: heroFadeUp 1s ease forwards 0.6s;
         }
 
         .hero-buttons {
             display: flex;
             gap: 20px;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: heroFadeUp 1s ease forwards 0.9s;
+        }
+
+        .hero .label-small {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: heroFadeUp 1s ease forwards 0.1s;
+        }
+
+        @keyframes heroFadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .scroll-indicator {
@@ -1474,6 +636,7 @@
             gap: 30px;
             margin-bottom: 50px;
             flex-wrap: wrap;
+            position: relative;
         }
 
         .menu-tab {
@@ -1504,20 +667,35 @@
 
         .menu-items {
             display: grid;
-            gap: 30px;
+            gap: 20px;
         }
 
         .menu-item {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(201,184,165,0.5);
-            transition: transform 0.3s ease;
+            gap: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .menu-item:hover {
             transform: translateX(10px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .menu-item-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .menu-item-details {
+            flex: 1;
         }
 
         .menu-item h3 {
@@ -1531,7 +709,7 @@
         }
 
         .menu-item-price {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 600;
             color: var(--burnished-gold);
         }
@@ -1706,26 +884,74 @@
             opacity: 1;
         }
 
+        /* ===== LIGHTBOX ===== */
+        .lightbox {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox.open {
+            display: flex;
+        }
+
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .lightbox-prev, .lightbox-next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .lightbox-prev { left: 30px; }
+        .lightbox-next { right: 30px; }
+
         /* ===== TESTIMONIALS ===== */
         .testimonials {
             padding: 100px 0;
             background: var(--alabaster);
         }
 
-        .testimonial-grid {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr 1fr;
-            gap: 60px;
-            align-items: center;
-            margin-top: 50px;
+        .testimonial-carousel {
+            position: relative;
+            max-width: 800px;
+            margin: 50px auto 0;
+            overflow: hidden;
         }
 
-        .testimonial {
+        .testimonial-track {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+
+        .testimonial-slide {
+            min-width: 100%;
             text-align: center;
-        }
-
-        .testimonial.featured {
-            transform: scale(1.1);
+            padding: 0 20px;
         }
 
         .testimonial .stars {
@@ -1737,7 +963,7 @@
 
         .testimonial blockquote {
             font-family: 'Playfair Display', serif;
-            font-size: 20px;
+            font-size: 24px;
             line-height: 1.6;
             margin-bottom: 20px;
             color: var(--ink-espresso);
@@ -1749,6 +975,31 @@
             letter-spacing: 0.1em;
             text-transform: uppercase;
             color: var(--warm-stone);
+        }
+
+        .testimonial-nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .testimonial-arrow {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--sand);
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .testimonial-arrow:hover {
+            background: var(--burnished-gold);
+            color: white;
+            border-color: var(--burnished-gold);
         }
 
         /* ===== RESERVATION ===== */
@@ -1852,15 +1103,31 @@
         .location-map {
             position: relative;
             min-height: 600px;
+            background: var(--bone);
         }
 
-        .location-map iframe {
+        #map {
             width: 100%;
             height: 100%;
-            border: none;
-            position: absolute;
-            top: 0;
-            left: 0;
+            min-height: 600px;
+        }
+
+        .map-pin-marker {
+            width: 36px;
+            height: 36px;
+            background: var(--burnished-gold);
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .map-pin-marker i {
+            transform: rotate(45deg);
+            color: white;
+            font-size: 18px;
         }
 
         /* ===== NEWSLETTER ===== */
@@ -2004,15 +1271,6 @@
                 grid-template-columns: 1fr;
             }
             
-            .testimonial-grid {
-                grid-template-columns: 1fr;
-                gap: 40px;
-            }
-            
-            .testimonial.featured {
-                transform: none;
-            }
-            
             .masonry {
                 columns: 2;
             }
@@ -2029,7 +1287,7 @@
                 grid-template-columns: 1fr;
             }
             
-            .location-map {
+            .location-map, #map {
                 min-height: 400px;
             }
         }
@@ -2039,11 +1297,7 @@
                 padding: 0 20px;
             }
             
-            .nav-links {
-                display: none;
-            }
-            
-            .nav-cta {
+            .nav-links, .nav-cta {
                 display: none;
             }
             
@@ -2053,10 +1307,6 @@
             
             .hero h1 {
                 font-size: 48px;
-            }
-            
-            .hero p {
-                font-size: 16px;
             }
             
             .hero-buttons {
@@ -2102,6 +1352,17 @@
             
             .hero-dots {
                 right: 20px;
+            }
+            
+            .menu-item {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .menu-item-image {
+                width: 100%;
+                height: 150px;
+                border-radius: 8px;
             }
         }
 
@@ -2167,7 +1428,23 @@
 </head>
 <body>
 
-    <!-- ===== NAVBAR ===== -->
+    <!-- Preloader -->
+    <div class="preloader" id="preloader">
+        <div class="coffee-cup"></div>
+        <div class="preloader-text">BREW & BEAN</div>
+    </div>
+
+    <!-- Scroll Progress Bar -->
+    <div class="scroll-progress" id="scrollProgress"></div>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot" id="cursorDot"></div>
+    <div class="cursor-outline" id="cursorOutline"></div>
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0, behavior:'smooth'})">↑</button>
+
+    <!-- Navbar -->
     <nav class="navbar" id="navbar">
         <div class="container navbar-content">
             <a href="#" class="logo">BREW & BEAN</a>
@@ -2182,7 +1459,7 @@
             
             <a href="#reservation" class="nav-cta">Book a Table</a>
             
-            <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()">
+            <button class="hamburger" onclick="toggleMobileMenu()">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -2190,7 +1467,7 @@
         </div>
     </nav>
 
-    <!-- ===== MOBILE MENU ===== -->
+    <!-- Mobile Menu -->
     <div class="mobile-menu" id="mobileMenu">
         <button class="mobile-menu-close" onclick="toggleMobileMenu()">✕</button>
         <a href="#home" onclick="toggleMobileMenu()">Home</a>
@@ -2200,7 +1477,7 @@
         <a href="#reservation" onclick="toggleMobileMenu()">Reservations</a>
     </div>
 
-    <!-- ===== HERO SLIDER ===== -->
+    <!-- Hero Slider -->
     <section class="hero" id="home">
         <div class="hero-slider">
             <div class="hero-slide active"></div>
@@ -2232,7 +1509,7 @@
         </div>
     </section>
 
-    <!-- ===== INTRO SECTION ===== -->
+    <!-- Intro Section -->
     <section class="intro">
         <div class="intro-image"></div>
         <div class="intro-content">
@@ -2243,7 +1520,7 @@
         </div>
     </section>
 
-    <!-- ===== SIGNATURE COFFEE ===== -->
+    <!-- Signature Coffee -->
     <section class="signature">
         <div class="container">
             <span class="label-small">Our Signatures</span>
@@ -2280,7 +1557,7 @@
         </div>
     </section>
 
-    <!-- ===== MENU SECTION ===== -->
+    <!-- Menu Section -->
     <section class="menu-section" id="menu">
         <div class="container">
             <span class="label-small">The Menu 📋</span>
@@ -2293,13 +1570,11 @@
                 <button class="menu-tab" onclick="switchMenu('desserts', this)">🍰 Desserts</button>
             </div>
             
-            <div class="menu-items" id="menuItems">
-                <!-- Menu items will be populated by JavaScript -->
-            </div>
+            <div class="menu-items" id="menuItems"></div>
         </div>
     </section>
 
-    <!-- ===== STORY SECTION ===== -->
+    <!-- Story Section -->
     <section class="story" id="story">
         <div class="container">
             <div class="story-content">
@@ -2311,7 +1586,7 @@
         </div>
     </section>
 
-    <!-- ===== FOOD SECTION ===== -->
+    <!-- Food Section -->
     <section class="food">
         <div class="container">
             <span class="label-small">More Than Coffee 🍽️</span>
@@ -2322,27 +1597,22 @@
                     <img src="https://images.unsplash.com/photo-1555507036-ab1f4038808a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Croissant">
                     <span class="masonry-label">Fresh Croissant 🥐</span>
                 </div>
-                
                 <div class="masonry-item">
                     <img src="https://images.unsplash.com/photo-1541519227354-08fa5d50c44d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Avocado Toast">
                     <span class="masonry-label">Avocado Toast 🥑</span>
                 </div>
-                
                 <div class="masonry-item">
                     <img src="https://images.unsplash.com/photo-1528207776546-365bb710ee93?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Pancakes">
                     <span class="masonry-label">Classic Pancakes 🥞</span>
                 </div>
-                
                 <div class="masonry-item">
                     <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Breakfast Bowl">
                     <span class="masonry-label">Breakfast Bowl 🥣</span>
                 </div>
-                
                 <div class="masonry-item">
                     <img src="https://images.unsplash.com/photo-1509365465985-25d11c17e812?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Pastry">
                     <span class="masonry-label">Fresh Pastry 🧁</span>
                 </div>
-                
                 <div class="masonry-item">
                     <img src="https://images.unsplash.com/photo-1528735602780-2552fd46c7af?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Sandwich">
                     <span class="masonry-label">Gourmet Sandwich 🥪</span>
@@ -2351,7 +1621,7 @@
         </div>
     </section>
 
-    <!-- ===== ATMOSPHERE ===== -->
+    <!-- Atmosphere -->
     <section class="atmosphere">
         <div class="container">
             <div class="atmosphere-content">
@@ -2362,49 +1632,42 @@
         </div>
     </section>
 
-    <!-- ===== GALLERY ===== -->
+    <!-- Gallery -->
     <section class="gallery" id="gallery">
         <div class="container">
             <span class="label-small">The Gallery 📸</span>
             <h2>Moments at Brew & Bean.</h2>
             
             <div class="gallery-grid">
-                <div class="gallery-item">
+                <div class="gallery-item" onclick="openLightbox(0)">
                     <img src="https://images.unsplash.com/photo-1442512595331-e89e73853f31?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Barista">
                     <span class="gallery-label">The Bar ☕</span>
                 </div>
-                
-                <div class="gallery-item">
+                <div class="gallery-item" onclick="openLightbox(1)">
                     <img src="https://images.unsplash.com/photo-1447933601403-0c6688de566e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Coffee Beans">
                     <span class="gallery-label">Coffee Beans 🫘</span>
                 </div>
-                
-                <div class="gallery-item">
+                <div class="gallery-item" onclick="openLightbox(2)">
                     <img src="https://images.unsplash.com/photo-1495774856032-8b90bbb32b32?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Espresso Machine">
                     <span class="gallery-label">Espresso Machine ⚙️</span>
                 </div>
-                
-                <div class="gallery-item">
+                <div class="gallery-item" onclick="openLightbox(3)">
                     <img src="https://images.unsplash.com/photo-1541167760496-1628856ab772?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Cappuccino">
                     <span class="gallery-label">Morning Coffee ✨</span>
                 </div>
-                
-                <div class="gallery-item">
+                <div class="gallery-item" onclick="openLightbox(4)">
                     <img src="https://images.unsplash.com/photo-1555507036-ab1f4038808a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Pastry">
                     <span class="gallery-label">Fresh From the Oven 🥐</span>
                 </div>
-                
-                <div class="gallery-item">
+                <div class="gallery-item" onclick="openLightbox(5)">
                     <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Café Interior">
                     <span class="gallery-label">The Café 🪑</span>
                 </div>
-                
-                <div class="gallery-item">
+                <div class="gallery-item" onclick="openLightbox(6)">
                     <img src="https://images.unsplash.com/photo-1521017432531-fbd92d768814?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Friends Having Coffee">
                     <span class="gallery-label">Friends & Coffee 👥</span>
                 </div>
-                
-                <div class="gallery-item">
+                <div class="gallery-item" onclick="openLightbox(7)">
                     <img src="https://images.unsplash.com/photo-1551024601-bec78aea704b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Dessert">
                     <span class="gallery-label">Sweet Treats 🍰</span>
                 </div>
@@ -2412,35 +1675,39 @@
         </div>
     </section>
 
-    <!-- ===== TESTIMONIALS ===== -->
+    <!-- Testimonials -->
     <section class="testimonials">
         <div class="container">
             <span class="label-small">Testimonials ✨</span>
             <h2 class="section-heading">Loved by coffee people. ☕</h2>
             
-            <div class="testimonial-grid">
-                <div class="testimonial">
-                    <div class="stars">⭐⭐⭐⭐⭐</div>
-                    <blockquote>"Beautiful coffee, thoughtful food, and an atmosphere that makes you want to stay all afternoon. 🪴✨"</blockquote>
-                    <div class="author">— Sarah M. 💛</div>
+            <div class="testimonial-carousel">
+                <div class="testimonial-track" id="testimonialTrack">
+                    <div class="testimonial-slide">
+                        <div class="stars">⭐⭐⭐⭐⭐</div>
+                        <blockquote>"Beautiful coffee, thoughtful food, and an atmosphere that makes you want to stay all afternoon. 🪴✨"</blockquote>
+                        <div class="author">— Sarah M. 💛</div>
+                    </div>
+                    <div class="testimonial-slide">
+                        <div class="stars">⭐⭐⭐⭐⭐</div>
+                        <blockquote>"The cappuccino alone is worth the visit. Easily one of my favorite cafés in the city. 🔥☕"</blockquote>
+                        <div class="author">— Daniel R. 🙌</div>
+                    </div>
+                    <div class="testimonial-slide">
+                        <div class="stars">⭐⭐⭐⭐⭐</div>
+                        <blockquote>"Brew & Bean feels like a second home. The staff remembers your order and the coffee is always perfect. 🏡❤️"</blockquote>
+                        <div class="author">— Emily K. 😊</div>
+                    </div>
                 </div>
-                
-                <div class="testimonial featured">
-                    <div class="stars">⭐⭐⭐⭐⭐</div>
-                    <blockquote>"The cappuccino alone is worth the visit. Easily one of my favorite cafés in the city. 🔥☕"</blockquote>
-                    <div class="author">— Daniel R. 🙌</div>
-                </div>
-                
-                <div class="testimonial">
-                    <div class="stars">⭐⭐⭐⭐⭐</div>
-                    <blockquote>"Brew & Bean feels like a second home. The staff remembers your order and the coffee is always perfect. 🏡❤️"</blockquote>
-                    <div class="author">— Emily K. 😊</div>
+                <div class="testimonial-nav">
+                    <button class="testimonial-arrow" onclick="moveTestimonial(-1)">←</button>
+                    <button class="testimonial-arrow" onclick="moveTestimonial(1)">→</button>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ===== RESERVATION ===== -->
+    <!-- Reservation -->
     <section class="reservation" id="reservation">
         <div class="container">
             <div class="reservation-content">
@@ -2450,32 +1717,28 @@
                     <p>Reserve your table and enjoy coffee the way it was meant to be.</p>
                 </div>
                 
-                <form class="reservation-form" id="reservationForm" onsubmit="handleReservation(event)">
+                <form class="reservation-form" onsubmit="handleReservation(event)">
                     <div class="form-group">
                         <label>Name 👤</label>
-                        <input type="text" id="name" required placeholder="Your name">
+                        <input type="text" required placeholder="Your name">
                     </div>
-                    
                     <div class="form-group">
                         <label>Email ✉️</label>
-                        <input type="email" id="email" required placeholder="Your email">
+                        <input type="email" required placeholder="Your email">
                     </div>
-                    
                     <div class="form-row">
                         <div class="form-group">
                             <label>Date 📅</label>
-                            <input type="date" id="date" required>
+                            <input type="date" required>
                         </div>
-                        
                         <div class="form-group">
                             <label>Time 🕐</label>
-                            <input type="time" id="time" required>
+                            <input type="time" required>
                         </div>
                     </div>
-                    
                     <div class="form-group">
                         <label>Guests 👥</label>
-                        <select id="guests" required>
+                        <select required>
                             <option value="">Select number of guests</option>
                             <option value="1">1 Guest</option>
                             <option value="2">2 Guests</option>
@@ -2485,60 +1748,45 @@
                             <option value="6">6+ Guests</option>
                         </select>
                     </div>
-                    
-                    <button type="submit" class="btn-primary" style="width: 100%;">Reserve a Table</button>
-                    
-                    <div id="formSuccess" style="display: none; margin-top: 20px; padding: 20px; background: #f0f8f0; border: 1px solid #4CAF50; color: #4CAF50; text-align: center;">
-                        ✅ Thank you! Your reservation request has been received. We'll confirm via email shortly.
+                    <button type="submit" class="btn-primary" style="width:100%">Reserve a Table</button>
+                    <div id="formSuccess" style="display:none; margin-top:20px; padding:20px; background:#f0f8f0; border:1px solid #4CAF50; color:#4CAF50; text-align:center;">
+                        ✅ Thank you! Your reservation request has been received.
                     </div>
                 </form>
             </div>
         </div>
     </section>
 
-    <!-- ===== LOCATION ===== -->
+    <!-- Location -->
     <section class="location" id="location">
         <div class="location-info">
             <div>
                 <span class="label-small">Find Us 📍</span>
                 <h2>Visit Brew & Bean.</h2>
-                
                 <div class="location-details">
                     <p>📍 42 Market Street, Downtown</p>
                     <p>📞 (555) 123-4567</p>
                     <p>✉️ hello@brewandbean.com</p>
                 </div>
-                
                 <div class="location-details">
                     <p><strong>Monday – Friday</strong><br>7:00 AM – 8:00 PM</p>
                     <p><strong>Saturday – Sunday</strong><br>8:00 AM – 9:00 PM</p>
                 </div>
-                
                 <a href="https://www.google.com/maps?q=42+Market+Street+Downtown" target="_blank" class="btn-primary">Get Directions</a>
             </div>
         </div>
-        
         <div class="location-map">
-            <iframe 
-                src="https://www.google.com/maps?q=New+York+City&output=embed" 
-                width="100%" 
-                height="100%" 
-                style="border:0;" 
-                allowfullscreen="" 
-                loading="lazy" 
-                referrerpolicy="no-referrer-when-downgrade">
-            </iframe>
+            <div id="map"></div>
         </div>
     </section>
 
-    <!-- ===== NEWSLETTER ===== -->
+    <!-- Newsletter -->
     <section class="newsletter">
         <div class="container">
             <div class="newsletter-content">
                 <span class="label-small">Newsletter 💌</span>
                 <h2>Stay in the loop.</h2>
                 <p>New coffee drops, seasonal menus, and things worth coming back for.</p>
-                
                 <form class="newsletter-form" onsubmit="handleNewsletter(event)">
                     <input type="email" placeholder="Your email address" required>
                     <button type="submit" class="btn-primary">Subscribe</button>
@@ -2547,14 +1795,13 @@
         </div>
     </section>
 
-    <!-- ===== FOOTER ===== -->
+    <!-- Footer -->
     <footer class="footer">
         <div class="container">
             <div class="footer-top">
                 <div class="footer-logo">BREW & BEAN</div>
                 <div class="footer-tagline">Good coffee. Slow moments. ☕</div>
             </div>
-            
             <div class="footer-grid">
                 <div class="footer-column">
                     <h4>Navigation</h4>
@@ -2566,7 +1813,6 @@
                         <li><a href="#location">Contact</a></li>
                     </ul>
                 </div>
-                
                 <div class="footer-column">
                     <h4>Visit Us</h4>
                     <ul>
@@ -2576,7 +1822,6 @@
                         <li>Sat–Sun: 8AM–9PM</li>
                     </ul>
                 </div>
-                
                 <div class="footer-column">
                     <h4>Follow Us</h4>
                     <div class="social-icons">
@@ -2586,14 +1831,83 @@
                     </div>
                 </div>
             </div>
-            
             <div class="footer-bottom">
                 © 2026 Brew & Bean. All rights reserved.
             </div>
         </div>
     </footer>
 
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox">
+        <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+        <button class="lightbox-prev" onclick="changeLightbox(-1)">❮</button>
+        <img src="" alt="Gallery Image" id="lightboxImg">
+        <button class="lightbox-next" onclick="changeLightbox(1)">❯</button>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
     <script>
+        // ===== PRELOADER =====
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('preloader').classList.add('hidden');
+            }, 1500);
+        });
+
+        // ===== CUSTOM CURSOR =====
+        const cursorDot = document.getElementById('cursorDot');
+        const cursorOutline = document.getElementById('cursorOutline');
+        let mouseX = 0, mouseY = 0, outlineX = 0, outlineY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            cursorDot.style.left = mouseX + 'px';
+            cursorDot.style.top = mouseY + 'px';
+            cursorDot.style.transform = 'translate(-50%, -50%)';
+        });
+
+        function animateOutline() {
+            outlineX += (mouseX - outlineX) * 0.2;
+            outlineY += (mouseY - outlineY) * 0.2;
+            cursorOutline.style.left = outlineX + 'px';
+            cursorOutline.style.top = outlineY + 'px';
+            requestAnimationFrame(animateOutline);
+        }
+        animateOutline();
+
+        // Hover effect on links/buttons
+        document.querySelectorAll('a, button, .menu-item, .signature-item, .masonry-item, .gallery-item').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorOutline.classList.add('hover'));
+            el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hover'));
+        });
+
+        // ===== SCROLL PROGRESS =====
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.scrollY;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = (scrollTop / docHeight) * 100;
+            document.getElementById('scrollProgress').style.width = progress + '%';
+
+            // Back to top button
+            const backToTop = document.getElementById('backToTop');
+            if (scrollTop > 500) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+
+            // Navbar background
+            const navbar = document.getElementById('navbar');
+            if (scrollTop > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
         // ===== HERO SLIDER =====
         let currentSlide = 0;
         const slides = document.querySelectorAll('.hero-slide');
@@ -2601,14 +1915,10 @@
         let slideInterval;
 
         function changeSlide(index) {
-            // Remove active class from all slides and dots
             slides.forEach(slide => slide.classList.remove('active'));
             dots.forEach(dot => dot.classList.remove('active'));
-            
-            // Add active class to current slide and dot
             slides[index].classList.add('active');
             dots[index].classList.add('active');
-            
             currentSlide = index;
         }
 
@@ -2617,7 +1927,6 @@
             changeSlide(currentSlide);
         }
 
-        // Auto-advance slides every 5 seconds
         function startSlider() {
             slideInterval = setInterval(nextSlide, 5000);
         }
@@ -2626,159 +1935,175 @@
             clearInterval(slideInterval);
         }
 
-        // Start the slider
         startSlider();
-
-        // Pause on hover
         document.querySelector('.hero').addEventListener('mouseenter', stopSlider);
         document.querySelector('.hero').addEventListener('mouseleave', startSlider);
 
-        // ===== NAVBAR SCROLL =====
-        window.addEventListener('scroll', function() {
-            const navbar = document.getElementById('navbar');
-            if (window.scrollY > 50) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
-            }
-        });
-
         // ===== MOBILE MENU =====
         function toggleMobileMenu() {
-            const menu = document.getElementById('mobileMenu');
-            menu.classList.toggle('open');
+            document.getElementById('mobileMenu').classList.toggle('open');
         }
 
-        // ===== FADE UP ANIMATION =====
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, observerOptions);
-
-        // Observe all sections for fade-up
-        document.querySelectorAll('section, .testimonial, .signature-item, .masonry-item, .gallery-item').forEach(el => {
-            el.classList.add('fade-up');
-            observer.observe(el);
-        });
-
-        // ===== MENU DATA =====
+        // ===== MENU DATA & SWITCHING =====
         const menuData = {
             coffee: [
-                { name: 'Espresso ☕', description: 'Rich, balanced and intense', price: '$3.50' },
-                { name: 'Cappuccino ✨', description: 'Silky milk foam with our signature espresso', price: '$5.00' },
-                { name: 'Flat White 🥛', description: 'Velvety microfoam over double espresso', price: '$5.25' },
-                { name: 'Vanilla Latte 🍦', description: 'House-made vanilla with smooth espresso', price: '$5.75' },
-                { name: 'Iced Mocha 🧊', description: 'Chocolate, espresso, and cold milk', price: '$6.00' }
+                { name: 'Espresso ☕', desc: 'Rich, balanced and intense', price: '$3.50', img: 'https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?w=200&q=80' },
+                { name: 'Cappuccino ✨', desc: 'Silky milk foam with our signature espresso', price: '$5.00', img: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=200&q=80' },
+                { name: 'Flat White 🥛', desc: 'Velvety microfoam over double espresso', price: '$5.25', img: 'https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?w=200&q=80' },
+                { name: 'Vanilla Latte 🍦', desc: 'House-made vanilla with smooth espresso', price: '$5.75', img: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=200&q=80' },
+                { name: 'Iced Mocha 🧊', desc: 'Chocolate, espresso, and cold milk', price: '$6.00', img: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=200&q=80' }
             ],
             breakfast: [
-                { name: 'Avocado Toast 🥑', description: 'Sourdough, smashed avocado, chili flakes', price: '$9.50' },
-                { name: 'Classic Pancakes 🥞', description: 'Maple syrup, butter, fresh berries', price: '$10.00' },
-                { name: 'Breakfast Bowl 🥣', description: 'Quinoa, greens, poached egg, avocado', price: '$11.50' },
-                { name: 'Eggs Benedict 🍳', description: 'English muffin, hollandaise, ham', price: '$12.00' }
+                { name: 'Avocado Toast 🥑', desc: 'Sourdough, smashed avocado, chili flakes', price: '$9.50', img: 'https://images.unsplash.com/photo-1541519227354-08fa5d50c44d?w=200&q=80' },
+                { name: 'Classic Pancakes 🥞', desc: 'Maple syrup, butter, fresh berries', price: '$10.00', img: 'https://images.unsplash.com/photo-1528207776546-365bb710ee93?w=200&q=80' },
+                { name: 'Breakfast Bowl 🥣', desc: 'Quinoa, greens, poached egg, avocado', price: '$11.50', img: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=200&q=80' },
+                { name: 'Eggs Benedict 🍳', desc: 'English muffin, hollandaise, ham', price: '$12.00', img: 'https://images.unsplash.com/photo-1528207776546-365bb710ee93?w=200&q=80' }
             ],
             pastries: [
-                { name: 'Butter Croissant 🥐', description: 'Flaky, buttery, baked fresh daily', price: '$4.25' },
-                { name: 'Almond Croissant 🌰', description: 'Filled with almond cream', price: '$5.00' },
-                { name: 'Cinnamon Roll 🌀', description: 'Warm, gooey, cream cheese icing', price: '$5.50' },
-                { name: 'Blueberry Muffin 🫐', description: 'Crumbly top, bursting with berries', price: '$4.75' }
+                { name: 'Butter Croissant 🥐', desc: 'Flaky, buttery, baked fresh daily', price: '$4.25', img: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=200&q=80' },
+                { name: 'Almond Croissant 🌰', desc: 'Filled with almond cream', price: '$5.00', img: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=200&q=80' },
+                { name: 'Cinnamon Roll 🌀', desc: 'Warm, gooey, cream cheese icing', price: '$5.50', img: 'https://images.unsplash.com/photo-1509365465985-25d11c17e812?w=200&q=80' },
+                { name: 'Blueberry Muffin 🫐', desc: 'Crumbly top, bursting with berries', price: '$4.75', img: 'https://images.unsplash.com/photo-1509365465985-25d11c17e812?w=200&q=80' }
             ],
             desserts: [
-                { name: 'Chocolate Tart 🍫', description: 'Rich ganache, sea salt, cocoa crust', price: '$6.50' },
-                { name: 'Tiramisu 🇮🇹', description: 'Espresso-soaked, mascarpone cream', price: '$7.00' },
-                { name: 'Cheesecake 🍰', description: 'Creamy, graham cracker crust', price: '$6.75' },
-                { name: 'Affogato 🍨', description: 'Vanilla gelato drowned in espresso', price: '$6.25' }
+                { name: 'Chocolate Tart 🍫', desc: 'Rich ganache, sea salt, cocoa crust', price: '$6.50', img: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=200&q=80' },
+                { name: 'Tiramisu 🇮🇹', desc: 'Espresso-soaked, mascarpone cream', price: '$7.00', img: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=200&q=80' },
+                { name: 'Cheesecake 🍰', desc: 'Creamy, graham cracker crust', price: '$6.75', img: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=200&q=80' },
+                { name: 'Affogato 🍨', desc: 'Vanilla gelato drowned in espresso', price: '$6.25', img: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=200&q=80' }
             ]
         };
 
-        // ===== MENU SWITCHING =====
-        function switchMenu(category, button) {
-            // Update active tab
-            document.querySelectorAll('.menu-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            button.classList.add('active');
-            
-            // Update menu items
-            const menuContainer = document.getElementById('menuItems');
+        function switchMenu(category, btn) {
+            document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            const container = document.getElementById('menuItems');
             const items = menuData[category];
-            
-            menuContainer.innerHTML = items.map(item => `
+            container.innerHTML = items.map(item => `
                 <div class="menu-item">
-                    <div>
+                    <img src="${item.img}" alt="${item.name}" class="menu-item-image">
+                    <div class="menu-item-details">
                         <h3>${item.name}</h3>
-                        <p>${item.description}</p>
+                        <p>${item.desc}</p>
                     </div>
                     <span class="menu-item-price">${item.price}</span>
                 </div>
             `).join('');
         }
 
-        // Load initial menu
         switchMenu('coffee', document.querySelector('.menu-tab'));
 
+        // ===== TESTIMONIAL CAROUSEL =====
+        let currentTestimonial = 0;
+        const track = document.getElementById('testimonialTrack');
+        const slidesCount = track.children.length;
+
+        function moveTestimonial(dir) {
+            currentTestimonial = (currentTestimonial + dir + slidesCount) % slidesCount;
+            track.style.transform = `translateX(-${currentTestimonial * 100}%)`;
+        }
+
+        // Auto-rotate testimonials
+        setInterval(() => moveTestimonial(1), 6000);
+
+        // ===== LIGHTBOX =====
+        const galleryImages = [
+            'https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=1200&q=80',
+            'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=1200&q=80',
+            'https://images.unsplash.com/photo-1495774856032-8b90bbb32b32?w=1200&q=80',
+            'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=1200&q=80',
+            'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=1200&q=80',
+            'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=1200&q=80',
+            'https://images.unsplash.com/photo-1521017432531-fbd92d768814?w=1200&q=80',
+            'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=1200&q=80'
+        ];
+        let currentLightboxIndex = 0;
+
+        function openLightbox(index) {
+            currentLightboxIndex = index;
+            document.getElementById('lightboxImg').src = galleryImages[index];
+            document.getElementById('lightbox').classList.add('open');
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('open');
+        }
+
+        function changeLightbox(dir) {
+            currentLightboxIndex = (currentLightboxIndex + dir + galleryImages.length) % galleryImages.length;
+            document.getElementById('lightboxImg').src = galleryImages[currentLightboxIndex];
+        }
+
+        // Close lightbox with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') changeLightbox(-1);
+            if (e.key === 'ArrowRight') changeLightbox(1);
+        });
+
         // ===== RESERVATION FORM =====
-        function handleReservation(event) {
-            event.preventDefault();
-            
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const date = document.getElementById('date').value;
-            const time = document.getElementById('time').value;
-            const guests = document.getElementById('guests').value;
-            
-            if (name && email && date && time && guests) {
-                document.getElementById('formSuccess').style.display = 'block';
-                event.target.reset();
+        function handleReservation(e) {
+            e.preventDefault();
+            document.getElementById('formSuccess').style.display = 'block';
+            e.target.reset();
+            setTimeout(() => {
+                document.getElementById('formSuccess').style.display = 'none';
+            }, 5000);
+        }
+
+        // ===== NEWSLETTER =====
+        function handleNewsletter(e) {
+            e.preventDefault();
+            alert('✅ Thank you for subscribing!');
+            e.target.reset();
+        }
+
+        // ===== LEAFLET MAP =====
+        document.addEventListener('DOMContentLoaded', function() {
+            const mapEl = document.getElementById('map');
+            if (mapEl && window.L) {
+                const brewLat = 40.7075; // Manhattan coordinates
+                const brewLng = -74.0021;
                 
-                // Hide success message after 5 seconds
-                setTimeout(() => {
-                    document.getElementById('formSuccess').style.display = 'none';
-                }, 5000);
-            }
-        }
+                const map = L.map('map', {
+                    scrollWheelZoom: false,
+                    zoomControl: true,
+                }).setView([brewLat, brewLng], 15);
 
-        // ===== NEWSLETTER FORM =====
-        function handleNewsletter(event) {
-            event.preventDefault();
-            const input = event.target.querySelector('input');
-            
-            if (input.value) {
-                alert('✅ Thank you for subscribing! Check your inbox for a welcome email.');
-                input.value = '';
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
+                    maxZoom: 19,
+                }).addTo(map);
+
+                const pinIcon = L.divIcon({
+                    className: '',
+                    html: '<div class="map-pin-marker"><i class="fas fa-coffee"></i></div>',
+                    iconSize: [36, 36],
+                    iconAnchor: [18, 34],
+                    popupAnchor: [0, -32],
+                });
+
+                L.marker([brewLat, brewLng], { icon: pinIcon, alt: 'Brew & Bean, 42 Market Street, Downtown' })
+                    .addTo(map)
+                    .bindPopup('<strong>Brew &amp; Bean</strong><br>42 Market Street, Downtown')
+                    .openPopup();
+
+                map.on('click', () => map.scrollWheelZoom.enable());
             }
-        }
+        });
+
+        // ===== FADE UP ANIMATION =====
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        document.querySelectorAll('section, .signature-item, .masonry-item, .gallery-item, .menu-item, .testimonial-slide').forEach(el => {
+            el.classList.add('fade-up');
+            observer.observe(el);
+        });
     </script>
-</body>
-</html>
-  // NEWSLETTER FORM
-  const newsletterForm = document.getElementById('newsletter-form');
-  const newsletterError = document.getElementById('newsletter-error');
-  const newsletterSuccess = document.getElementById('newsletter-success');
-
-  newsletterForm.addEventListener('submit', function(e){
-    e.preventDefault();
-    const emailInput = document.getElementById('newsletter-email');
-    const email = emailInput.value.trim();
-
-    if (!isValidEmail(email)) {
-      newsletterError.classList.remove('hidden');
-      emailInput.style.borderColor = '#c46a5e';
-      return;
-    }
-
-    newsletterError.classList.add('hidden');
-    newsletterForm.classList.add('hidden');
-    newsletterSuccess.classList.remove('hidden');
-  });
-</script>
-
 </body>
 </html>
