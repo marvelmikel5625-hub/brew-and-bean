@@ -1,0 +1,501 @@
+from pathlib import Path
+
+html = r'''<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#19120e">
+<title>AROMA — Specialty Coffee</title>
+<meta name="description" content="AROMA specialty coffee — beautifully roasted, thoughtfully brewed.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.7/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.7/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+:root{
+  --bg:#f5efe5;--paper:#fffaf3;--dark:#19120e;--dark2:#241710;
+  --brown:#68442e;--tan:#b98a62;--muted:#7d6d60;--line:rgba(25,18,14,.13);
+  --white:#fffaf3;--ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--dark);overflow-x:hidden}
+body.lock{overflow:hidden}
+button,input{font:inherit} button{border:0;cursor:pointer} a{text-decoration:none;color:inherit}
+img{display:block;width:100%}
+::selection{background:var(--brown);color:var(--white)}
+.serif{font-family:"Playfair Display",serif}
+.container{width:min(1240px,calc(100% - 42px));margin:auto}
+.muted{color:var(--muted)}
+.grain{position:absolute;inset:0;pointer-events:none;opacity:.08;z-index:2;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E")}
+
+/* announcement */
+.announcement{height:31px;background:var(--dark);color:#d9c8b7;display:flex;align-items:center;justify-content:center;font-size:8px;text-transform:uppercase;letter-spacing:.23em;position:relative;z-index:1100}
+.announcement span{color:#d4a57b}
+
+/* navigation */
+.header{position:fixed;top:43px;left:0;right:0;z-index:1000;padding:15px 18px}
+.nav{height:62px;width:min(1240px,100%);margin:auto;border:1px solid rgba(255,255,255,.13);border-radius:999px;background:rgba(28,18,13,.78);backdrop-filter:blur(18px);display:flex;align-items:center;justify-content:space-between;padding:0 10px 0 22px;color:#fffaf3;box-shadow:0 15px 45px rgba(0,0,0,.13)}
+.brand{display:flex;align-items:center;gap:11px;font-size:13px;letter-spacing:.22em;font-weight:700}
+.mark{width:32px;height:32px;border:1px solid rgba(255,255,255,.45);border-radius:50%;display:grid;place-items:center}
+.mark:before{content:"";width:8px;height:12px;border:1px solid #fff;border-radius:70% 30% 65% 35%;transform:rotate(35deg)}
+.navlinks{display:flex;gap:32px;font-size:9px;letter-spacing:.18em;text-transform:uppercase}
+.navlinks a{opacity:.67;transition:.3s}.navlinks a:hover{opacity:1}
+.navright{display:flex;align-items:center;gap:8px}
+.icon{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.06);color:white;border:1px solid rgba(255,255,255,.11);transition:.3s;position:relative}
+.icon:hover{background:rgba(255,255,255,.13);transform:translateY(-2px)}
+.count{position:absolute;right:-2px;top:-2px;min-width:17px;height:17px;border-radius:50%;background:var(--tan);color:var(--dark);font-size:8px;display:grid;place-items:center;font-weight:700}
+.pill{display:inline-flex;align-items:center;justify-content:center;gap:10px;border-radius:999px;padding:14px 20px;text-transform:uppercase;letter-spacing:.17em;font-size:8px;font-weight:700;transition:.35s var(--ease)}
+.pill.light{background:var(--paper);color:var(--dark)}.pill.light:hover{background:#d8b896;transform:translateY(-2px)}
+.pill.dark{background:var(--dark);color:white}.pill.dark:hover{background:var(--brown);transform:translateY(-2px)}
+.menuBtn{display:none}
+
+/* mobile menu */
+.mobile{position:fixed;inset:0;background:var(--dark);z-index:2000;color:white;padding:24px;transform:translateY(-105%);transition:transform .65s var(--ease)}
+.mobile.open{transform:translateY(0)}
+.mobiletop{display:flex;justify-content:space-between;align-items:center}
+.mobilelinks{margin-top:90px;display:grid;gap:20px}
+.mobilelinks a{font-family:"Playfair Display";font-size:clamp(48px,14vw,78px);line-height:.82}
+
+/* hero */
+.hero{min-height:100svh;background:var(--dark);position:relative;color:white;display:flex;align-items:flex-end;overflow:hidden}
+.heroimg{position:absolute;inset:-4%;width:108%;height:108%;object-fit:cover;opacity:.64}
+.herooverlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(21,12,8,.95),rgba(30,18,12,.54) 55%,rgba(30,18,12,.12)),linear-gradient(0deg,rgba(20,11,7,.93),transparent 62%)}
+.heroinner{position:relative;z-index:4;width:min(1240px,calc(100% - 42px));margin:auto;padding:170px 0 68px}
+.eyebrow{display:flex;align-items:center;gap:11px;color:#d1a47d;text-transform:uppercase;letter-spacing:.25em;font-size:8px;font-weight:600}
+.eyebrow i{width:38px;height:1px;background:#b9865d}
+.hero h1{font-family:"Playfair Display";font-size:clamp(68px,10.5vw,148px);line-height:.82;letter-spacing:-.055em;font-weight:500;margin-top:27px;max-width:1050px}
+.hero h1 em{display:block;margin-left:8vw;color:#d4aa83}
+.herobottom{margin-top:45px;display:flex;justify-content:space-between;align-items:flex-end;gap:30px}
+.herocopy{max-width:390px;color:#d7cabd;font-size:13px;line-height:1.9}
+.scrollhint{display:flex;align-items:center;gap:10px;color:#bca997;text-transform:uppercase;letter-spacing:.17em;font-size:8px}
+.scrollcircle{width:38px;height:38px;border:1px solid rgba(255,255,255,.2);border-radius:50%;display:grid;place-items:center;animation:float 2.6s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(5px)}}
+
+/* trust strip */
+.trust{border-bottom:1px solid var(--line);background:var(--paper)}
+.trustgrid{display:grid;grid-template-columns:repeat(4,1fr)}
+.trustitem{padding:27px 23px;border-right:1px solid var(--line)}
+.trustitem:last-child{border:0}.trustitem strong{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.18em}.trustitem span{display:block;margin-top:7px;font-size:10px;color:var(--muted)}
+
+/* common */
+.section{padding:125px 0}.head{display:grid;grid-template-columns:.85fr 1.15fr;gap:50px;align-items:end}
+.label{color:#896549;font-size:8px;text-transform:uppercase;letter-spacing:.25em;font-weight:700}
+.title{font-family:"Playfair Display";font-size:clamp(50px,6vw,82px);line-height:.9;letter-spacing:-.045em;font-weight:500;margin-top:18px}
+.title em{color:#795237}
+.desc{max-width:430px;margin-left:auto;color:var(--muted);font-size:13px;line-height:1.9}
+
+/* products */
+.menuSection{background:#ebe0d2}
+.filters{margin-top:55px;display:flex;gap:7px;flex-wrap:wrap}
+.filter{border:1px solid var(--line);background:transparent;border-radius:999px;padding:11px 15px;font-size:8px;text-transform:uppercase;letter-spacing:.15em;transition:.3s}
+.filter.active,.filter:hover{background:var(--dark);color:white;border-color:var(--dark)}
+.products{margin-top:27px;display:grid;grid-template-columns:repeat(4,1fr);gap:15px}
+.product{background:var(--paper);border-radius:23px;overflow:hidden;border:1px solid rgba(25,18,14,.06);transition:transform .45s var(--ease),box-shadow .45s}
+.product:hover{transform:translateY(-7px);box-shadow:0 22px 50px rgba(40,25,15,.11)}
+.productimg{height:290px;object-fit:cover;transition:transform .7s var(--ease)}
+.product:hover .productimg{transform:scale(1.045)}
+.productbody{padding:20px}
+.productmeta{display:flex;justify-content:space-between;gap:10px;color:#9b7557;font-size:7px;text-transform:uppercase;letter-spacing:.17em}
+.product h3{font-family:"Playfair Display";font-size:25px;font-weight:500;margin-top:9px;line-height:1}
+.product p{color:var(--muted);font-size:10px;line-height:1.65;margin-top:9px;min-height:33px}
+.productfoot{display:flex;align-items:center;justify-content:space-between;margin-top:17px}
+.price{font-family:"Playfair Display";font-size:21px}
+.add{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--dark);color:white;transition:.3s}.add:hover{background:var(--brown);transform:rotate(90deg)}
+.quick{width:100%;margin-top:9px;background:transparent;border-top:1px solid var(--line);padding-top:12px;color:var(--muted);font-size:8px;text-transform:uppercase;letter-spacing:.14em;text-align:left}
+
+/* feature split */
+.split{display:grid;grid-template-columns:1.05fr .95fr;gap:18px;margin-top:65px}
+.bigimage{height:650px;border-radius:28px;overflow:hidden;position:relative}
+.bigimage img{height:100%;object-fit:cover}
+.bigimage:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(22,12,8,.72),transparent 55%)}
+.imagecaption{position:absolute;z-index:2;left:27px;bottom:27px;color:white}.imagecaption small{color:#d0a37d;font-size:8px;text-transform:uppercase;letter-spacing:.2em}.imagecaption h3{font-family:"Playfair Display";font-size:38px;margin-top:7px}
+.storypanel{background:var(--dark);color:white;border-radius:28px;padding:42px;display:flex;flex-direction:column;justify-content:space-between}
+.storypanel .label{color:#b78b68}
+.storypanel h3{font-family:"Playfair Display";font-size:clamp(42px,4vw,65px);line-height:.92;font-weight:500;margin-top:18px}
+.storypanel p{color:rgba(255,255,255,.48);font-size:12px;line-height:1.9;max-width:400px;margin-top:20px}
+.storyfacts{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:rgba(255,255,255,.1);margin-top:30px}
+.fact{background:var(--dark);padding:22px 0}.fact strong{font-family:"Playfair Display";font-size:27px;font-weight:500}.fact span{display:block;color:rgba(255,255,255,.4);font-size:8px;text-transform:uppercase;letter-spacing:.15em;margin-top:5px}
+
+/* origin */
+.origin{background:var(--dark);color:white}
+.origin .label{color:#b99370}.origin .title em{color:#c49a73}.origin .desc{color:rgba(255,255,255,.47)}
+.originlayout{margin-top:60px;display:grid;grid-template-columns:.8fr 1.2fr;gap:18px}
+.originlist{border:1px solid rgba(255,255,255,.1);border-radius:25px;overflow:hidden}
+.originrow{padding:22px 23px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:space-between;gap:15px;transition:.3s;cursor:pointer}
+.originrow:last-child{border:0}.originrow:hover,.originrow.active{background:rgba(255,255,255,.06)}
+.originname{font-family:"Playfair Display";font-size:25px}.originplace{font-size:7px;color:#a98162;text-transform:uppercase;letter-spacing:.2em}
+.mapwrap{min-height:470px;border-radius:25px;overflow:hidden;border:1px solid rgba(255,255,255,.1)}
+#map{height:100%;min-height:470px}
+.leaflet-control-attribution{font-size:8px}
+
+/* subscription */
+.subscription{background:var(--paper)}
+.subbox{margin-top:55px;background:var(--dark);border-radius:30px;color:white;padding:55px;display:grid;grid-template-columns:1fr .75fr;gap:60px;align-items:end;overflow:hidden;position:relative}
+.subbox:before{content:"";position:absolute;width:450px;height:450px;border:1px solid rgba(255,255,255,.08);border-radius:50%;right:-100px;top:-170px}
+.subbox .label{color:#bc906c}.subbox h3{font-family:"Playfair Display";font-size:clamp(45px,5vw,70px);line-height:.9;font-weight:500;margin-top:17px;position:relative}
+.subbox h3 em{color:#c69a74}.subcopy{color:rgba(255,255,255,.48);font-size:12px;line-height:1.85;position:relative}
+.plans{display:flex;gap:8px;margin-top:24px;position:relative}.plan{border:1px solid rgba(255,255,255,.14);border-radius:15px;padding:16px;flex:1}.plan b{font-family:"Playfair Display";font-size:22px;font-weight:500}.plan span{display:block;color:rgba(255,255,255,.42);font-size:8px;text-transform:uppercase;letter-spacing:.15em;margin-top:5px}
+
+/* gallery */
+.gallery{background:#ded0bd}.gallerygrid{margin-top:55px;display:grid;grid-template-columns:1.3fr .7fr .9fr;grid-template-rows:260px 260px;gap:12px}
+.galleryitem{border-radius:20px;overflow:hidden;position:relative}.galleryitem:first-child{grid-row:span 2}.galleryitem:nth-child(4){grid-column:2/4}.galleryitem img{height:100%;object-fit:cover;transition:transform .7s var(--ease)}.galleryitem:hover img{transform:scale(1.05)}.galleryitem:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(25,15,9,.35),transparent 45%)}
+
+/* cafe */
+.cafe{position:relative;min-height:72vh;display:flex;align-items:center;color:white;background:var(--dark);overflow:hidden}.cafeimg{position:absolute;inset:-4%;width:108%;height:108%;object-fit:cover;opacity:.6}.cafeoverlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(24,13,8,.94),rgba(24,13,8,.35),transparent)}.cafecontent{position:relative;z-index:3;width:min(1240px,calc(100% - 42px));margin:auto;padding:115px 0}.cafecontent .label{color:#bd916d}.cafe h2{font-family:"Playfair Display";font-weight:500;font-size:clamp(60px,8vw,110px);line-height:.84;letter-spacing:-.05em;margin-top:20px}.cafe h2 em{color:#d0a17a}.meta{display:flex;flex-wrap:wrap;gap:25px;margin-top:34px;color:rgba(255,255,255,.68);font-size:10px}.meta span{display:flex;align-items:center;gap:8px}
+
+/* map CTA */
+.find{padding:100px 0;background:var(--paper)}.findgrid{display:grid;grid-template-columns:.8fr 1.2fr;gap:50px;align-items:center}.find h2{font-family:"Playfair Display";font-size:clamp(50px,6vw,78px);font-weight:500;line-height:.9;margin-top:17px}.find p{margin-top:25px;color:var(--muted);font-size:12px;line-height:1.9}.hours{margin-top:28px;border-top:1px solid var(--line)}.hour{display:flex;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--line);font-size:10px}.hour span:last-child{color:var(--muted)}.minimap{height:420px;border-radius:26px;overflow:hidden}
+
+/* reviews */
+.reviews{text-align:center;padding:125px 0;background:#cdb89f}.orbit{width:48px;height:48px;border:1px solid rgba(25,18,14,.2);border-radius:50%;display:grid;place-items:center;margin:auto}.reviews .label{margin-top:22px}.quote{max-width:940px;margin:30px auto 0;font-family:"Playfair Display";font-size:clamp(38px,5vw,68px);line-height:1;letter-spacing:-.035em}.author{margin-top:28px;font-size:8px;text-transform:uppercase;letter-spacing:.18em;font-weight:700}.role{font-size:10px;color:#725b47;margin-top:6px}.dots{margin-top:28px;display:flex;justify-content:center;gap:7px}.dot{width:7px;height:7px;border-radius:50%;background:rgba(25,18,14,.2);transition:.3s}.dot.active{width:35px;border-radius:99px;background:var(--brown)}
+
+/* newsletter/footer */
+.cta{background:var(--dark);color:white;padding:130px 0}.ctagrid{display:grid;grid-template-columns:1fr .7fr;gap:80px;align-items:end}.cta h2{font-family:"Playfair Display";font-size:clamp(62px,8vw,112px);line-height:.82;letter-spacing:-.05em;font-weight:500;margin-top:20px}.cta h2 em{color:#c79a73}.ctacopy{color:rgba(255,255,255,.47);font-size:12px;line-height:1.9}.form{display:flex;border-bottom:1px solid rgba(255,255,255,.2);margin-top:26px;padding-bottom:12px}.form input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:white;font-size:12px}.form input::placeholder{color:rgba(255,255,255,.3)}.form button{background:transparent;color:white;font-size:8px;text-transform:uppercase;letter-spacing:.17em;font-weight:700;display:flex;align-items:center;gap:8px}
+footer{background:#120b08;color:white;padding:62px 0 23px}.footgrid{display:grid;grid-template-columns:1.4fr .6fr .7fr .8fr;gap:35px}.footbrand{font-family:"Playfair Display";font-size:30px;letter-spacing:.08em}.footdesc{color:rgba(255,255,255,.37);font-size:10px;line-height:1.8;max-width:300px;margin-top:15px}.footlabel{font-size:7px;color:#b58a69;text-transform:uppercase;letter-spacing:.2em}.footlinks{display:grid;gap:10px;margin-top:15px;color:rgba(255,255,255,.43);font-size:10px}.footlinks a:hover{color:white}.footbottom{border-top:1px solid rgba(255,255,255,.08);margin-top:50px;padding-top:20px;display:flex;justify-content:space-between;color:rgba(255,255,255,.24);font-size:7px;text-transform:uppercase;letter-spacing:.15em}
+
+/* cart drawer */
+.drawerback{position:fixed;inset:0;background:rgba(0,0,0,.38);z-index:1800;opacity:0;pointer-events:none;transition:.4s}.drawerback.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;right:0;top:0;height:100%;width:min(430px,92vw);background:var(--paper);z-index:1900;transform:translateX(105%);transition:transform .55s var(--ease);padding:28px;display:flex;flex-direction:column}.drawer.open{transform:translateX(0)}
+.drawertop{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:20px}.drawertop h3{font-family:"Playfair Display";font-size:31px;font-weight:500}.close{width:38px;height:38px;border-radius:50%;background:var(--dark);color:white;display:grid;place-items:center}
+.cartitems{flex:1;overflow:auto;padding:15px 0}.cartrow{display:grid;grid-template-columns:72px 1fr auto;gap:13px;padding:15px 0;border-bottom:1px solid var(--line)}.cartrow img{width:72px;height:72px;border-radius:12px;object-fit:cover}.cartrow h4{font-family:"Playfair Display";font-size:19px;font-weight:500}.cartrow p{font-size:9px;color:var(--muted);margin-top:5px}.qty{display:flex;align-items:center;gap:8px;margin-top:10px}.qty button{width:23px;height:23px;border-radius:50%;background:#eadfd1}.cartprice{font-family:"Playfair Display";font-size:17px}.drawerfoot{border-top:1px solid var(--line);padding-top:20px}.subtotal{display:flex;justify-content:space-between;font-family:"Playfair Display";font-size:23px;margin-bottom:16px}.empty{text-align:center;color:var(--muted);font-size:11px;padding:60px 20px}
+
+/* quick view */
+.modalback{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2100;display:grid;place-items:center;padding:20px;opacity:0;pointer-events:none;transition:.35s}.modalback.open{opacity:1;pointer-events:auto}.modal{width:min(850px,100%);background:var(--paper);border-radius:28px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;transform:translateY(25px);transition:.45s var(--ease)}.modalback.open .modal{transform:translateY(0)}.modalimg{height:100%;min-height:430px;object-fit:cover}.modalbody{padding:40px}.modalbody .label{color:#8b684f}.modalbody h3{font-family:"Playfair Display";font-size:45px;font-weight:500;line-height:.9;margin-top:14px}.modalbody p{color:var(--muted);font-size:12px;line-height:1.8;margin-top:20px}.modalprice{font-family:"Playfair Display";font-size:28px;margin-top:25px}.modalclose{position:absolute;top:28px;right:28px}
+
+/* toast */
+.toast{position:fixed;right:18px;bottom:18px;z-index:3000;background:var(--dark);color:white;padding:14px 17px;border-radius:13px;font-size:10px;box-shadow:0 15px 40px rgba(0,0,0,.2);transform:translateY(120px);opacity:0;transition:.5s var(--ease)}.toast.show{transform:translateY(0);opacity:1}
+
+/* mobile bottom bar */
+.mobileorder{display:none}
+
+/* responsive */
+@media(max-width:1000px){
+ .navlinks,.nav .pill{display:none}.menuBtn{display:grid}
+ .products{grid-template-columns:repeat(2,1fr)}
+ .head{grid-template-columns:1fr;gap:20px}.desc{margin:0}
+ .split,.originlayout,.findgrid,.subbox,.ctagrid{grid-template-columns:1fr}
+ .storypanel{min-height:560px}.mapwrap{min-height:420px}
+ .subbox{gap:30px}.gallerygrid{grid-template-columns:1fr 1fr;grid-template-rows:260px 260px 260px}.galleryitem:first-child{grid-row:auto;grid-column:span 2}.galleryitem:nth-child(4){grid-column:auto}
+ .footgrid{grid-template-columns:1fr 1fr}.footgrid>div:first-child{grid-column:1/-1}
+}
+@media(max-width:600px){
+ .announcement{font-size:7px}.header{top:31px;padding:9px}.nav{height:57px;padding-left:16px}.brand{font-size:11px}.mark{width:29px;height:29px}
+ .container,.heroinner,.cafecontent{width:calc(100% - 30px)}
+ .hero{min-height:88svh}.heroinner{padding:140px 0 45px}.hero h1{font-size:clamp(55px,18vw,86px)}.hero h1 em{margin-left:0}.herobottom{display:block}.scrollhint{display:none}.herocopy{font-size:11px;margin-top:25px}
+ .trustgrid{grid-template-columns:1fr 1fr}.trustitem{padding:20px 13px}.trustitem:nth-child(2){border-right:0}.trustitem:nth-child(-n+2){border-bottom:1px solid var(--line)}
+ .section{padding:90px 0}.title{font-size:50px}.products{grid-template-columns:1fr 1fr;gap:9px}.product{border-radius:17px}.productimg{height:205px}.productbody{padding:14px}.product h3{font-size:21px}.product p{font-size:9px;min-height:auto}.productfoot{margin-top:12px}.price{font-size:18px}.add{width:34px;height:34px}
+ .filters{margin-top:35px;overflow:auto;flex-wrap:nowrap;padding-bottom:4px}.filter{white-space:nowrap}
+ .bigimage{height:480px;border-radius:21px}.storypanel{padding:27px;border-radius:21px;min-height:510px}.storypanel h3{font-size:46px}
+ .originlayout{margin-top:40px}.originrow{padding:18px}.originname{font-size:22px}.mapwrap,#map{min-height:390px}
+ .plans{flex-direction:column}.subbox{padding:32px 25px;border-radius:22px}.subbox h3{font-size:50px}
+ .gallerygrid{grid-template-columns:1fr 1fr;grid-template-rows:200px 200px 200px;gap:8px}.galleryitem{border-radius:14px}
+ .cafecontent{padding:100px 0}.cafe h2{font-size:60px}.meta{display:grid;gap:14px}
+ .find{padding:80px 0}.minimap{height:350px}
+ .quote{font-size:37px}.reviews{padding:90px 0}
+ .cta{padding:90px 0}.ctagrid{gap:45px}.cta h2{font-size:65px}
+ .footgrid{grid-template-columns:1fr}.footgrid>div:first-child{grid-column:auto}.footbottom{flex-direction:column;gap:10px}
+ .modal{grid-template-columns:1fr}.modalimg{height:280px;min-height:0}.modalbody{padding:25px}.modalbody h3{font-size:38px}
+ .drawer{padding:20px}
+ .mobileorder{display:flex;position:fixed;bottom:10px;left:10px;right:10px;z-index:1200;background:rgba(25,18,14,.94);backdrop-filter:blur(15px);border-radius:999px;padding:8px;color:white;align-items:center;justify-content:space-between;box-shadow:0 15px 40px rgba(0,0,0,.2)}.mobileorder span{font-size:9px;text-transform:uppercase;letter-spacing:.14em;padding-left:13px}.mobileorder button{border-radius:999px;background:var(--paper);color:var(--dark);padding:12px 17px;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.14em}
+}
+
+/* accessibility */
+@media(prefers-reduced-motion:reduce){
+ *,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}
+}
+</style>
+</head>
+
+<body>
+<div class="announcement">Fresh roast drop every Friday <span>·</span> Free local pickup over $35</div>
+
+<header class="header">
+<nav class="nav">
+<a href="#home" class="brand"><span class="mark"></span> AROMA</a>
+<div class="navlinks">
+<a href="#menu">Menu</a><a href="#story">Our story</a><a href="#origins">Origins</a><a href="#cafe">Café</a>
+</div>
+<div class="navright">
+<button class="icon" id="cartBtn" aria-label="Open cart"><i data-lucide="shopping-bag" width="16"></i><span class="count" id="cartCount">0</span></button>
+<a class="pill light" href="#menu">Order coffee <i data-lucide="arrow-up-right" width="13"></i></a>
+<button class="icon menuBtn" id="menuOpen" aria-label="Open menu"><i data-lucide="menu" width="18"></i></button>
+</div>
+</nav>
+</header>
+
+<div class="mobile" id="mobile">
+<div class="mobiletop"><a href="#home" class="brand"><span class="mark"></span> AROMA</a><button class="icon" id="menuClose"><i data-lucide="x" width="18"></i></button></div>
+<div class="mobilelinks"><a href="#menu">Menu</a><a href="#story">Story</a><a href="#origins">Origins</a><a href="#cafe">Café</a></div>
+<a href="#menu" class="pill light" style="margin-top:42px">Order coffee <i data-lucide="arrow-up-right" width="13"></i></a>
+</div>
+
+<main id="home">
+<section class="hero">
+<img class="heroimg" src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=2200&q=90" alt="Warm coffee shop interior">
+<div class="herooverlay"></div><div class="grain"></div>
+<div class="heroinner">
+<div class="eyebrow heroanim"><i></i> Specialty coffee · Est. 2018</div>
+<h1 class="heroanim">Good coffee.<em>Slow moments.</em></h1>
+<div class="herobottom heroanim"><p class="herocopy">Thoughtfully sourced beans, roasted in small batches and brewed for the moments worth staying a little longer for.</p><div class="scrollhint"><span class="scrollcircle"><i data-lucide="arrow-down" width="14"></i></span> Scroll to explore</div></div>
+<a class="pill light heroanim" href="#menu" style="margin-top:28px">Explore the menu <i data-lucide="arrow-down-right" width="13"></i></a>
+</div>
+</section>
+
+<section class="trust"><div class="container trustgrid">
+<div class="trustitem"><strong>Small batch</strong><span>Roasted fresh every week</span></div>
+<div class="trustitem"><strong>Single origin</strong><span>Selected with intention</span></div>
+<div class="trustitem"><strong>Fresh daily</strong><span>Brewed carefully to order</span></div>
+<div class="trustitem"><strong>Good energy</strong><span>Better moments together</span></div>
+</div></section>
+
+<section class="section menuSection" id="menu">
+<div class="container">
+<div class="head">
+<div class="reveal"><div class="label">The menu</div><h2 class="title">Your next<br><em>favorite cup.</em></h2></div>
+<p class="desc reveal">From bright single origins to silky house classics. Choose your ritual, then make it yours.</p>
+</div>
+<div class="filters" id="filters"></div>
+<div class="products" id="products"></div>
+</div>
+</section>
+
+<section class="section" id="story">
+<div class="container">
+<div class="head"><div class="reveal"><div class="label">Why AROMA</div><h2 class="title">Made slowly.<br><em>Made well.</em></h2></div><p class="desc reveal">We believe better coffee comes from paying attention — to the farmer, the roast, the water, and the person holding the cup.</p></div>
+<div class="split">
+<div class="bigimage reveal"><img src="https://images.unsplash.com/photo-1498804103079-a6351b050096?auto=format&fit=crop&w=1500&q=90" alt="Barista making coffee"><div class="imagecaption"><small>Inside the roastery</small><h3>Craft is the difference.</h3></div></div>
+<div class="storypanel reveal"><div><div class="label">Our approach</div><h3>Less noise.<br>More flavor.</h3><p>We build relationships with producers, roast in small batches, and keep our café menu focused on things we genuinely love.</p><a class="pill light" href="#origins" style="margin-top:28px">Meet our origins <i data-lucide="arrow-up-right" width="13"></i></a></div><div class="storyfacts"><div class="fact"><strong>18+</strong><span>Farm partners</span></div><div class="fact"><strong>07</strong><span>Years roasting</span></div><div class="fact"><strong>12</strong><span>Core coffees</span></div><div class="fact"><strong>01</strong><span>Good reason</span></div></div></div>
+</div>
+</div>
+</section>
+
+<section class="section origin" id="origins">
+<div class="container">
+<div class="head"><div class="reveal"><div class="label">From around the world</div><h2 class="title">Every origin<br>has a <em>story.</em></h2></div><p class="desc reveal">Explore a few of the places behind our menu. Select an origin to see its position on the map.</p></div>
+<div class="originlayout">
+<div class="originlist" id="originList"></div>
+<div class="mapwrap reveal"><div id="map"></div></div>
+</div>
+</div>
+</section>
+
+<section class="section subscription">
+<div class="container">
+<div class="head"><div class="reveal"><div class="label">Coffee, on repeat</div><h2 class="title">Never run out<br>of <em>good beans.</em></h2></div><p class="desc reveal">Choose a monthly delivery, pause whenever you want, and keep your mornings beautifully stocked.</p></div>
+<div class="subbox reveal"><div><div class="label">AROMA subscription</div><h3>Fresh coffee,<br><em>without thinking.</em></h3></div><div><p class="subcopy">Every box is roasted just before it ships. Pick your pace and discover a new origin or keep your house favorite on repeat.</p><div class="plans"><div class="plan"><b>$18</b><span>Monthly · 250g</span></div><div class="plan"><b>$32</b><span>Monthly · 500g</span></div></div><button class="pill light" style="margin-top:15px" id="subscribeBtn">Start a subscription <i data-lucide="arrow-right" width="13"></i></button></div></div>
+</div>
+</section>
+
+<section class="section gallery">
+<div class="container">
+<div class="head"><div class="reveal"><div class="label">Around the café</div><h2 class="title">A place to<br><em>stay awhile.</em></h2></div><p class="desc reveal">Morning light, warm wood, good music, and a table you don't have to leave too quickly.</p></div>
+<div class="gallerygrid">
+<div class="galleryitem reveal"><img src="https://images.unsplash.com/photo-1445116572660-236099ec97a0?auto=format&fit=crop&w=1300&q=90" alt="Coffee café"></div>
+<div class="galleryitem reveal"><img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1000&q=90" alt="Coffee cup"></div>
+<div class="galleryitem reveal"><img src="https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=1000&q=90" alt="Coffee beans"></div>
+<div class="galleryitem reveal"><img src="https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=1300&q=90" alt="Latte"></div>
+</div>
+</div>
+</section>
+
+<section class="cafe" id="cafe">
+<img class="cafeimg" src="https://images.unsplash.com/photo-1453614512568-c4024d13c247?auto=format&fit=crop&w=2200&q=90" alt="AROMA café">
+<div class="cafeoverlay"></div><div class="grain"></div>
+<div class="cafecontent">
+<div class="label reveal">Come by sometime</div>
+<h2 class="reveal">Come for the<br><em>coffee.</em><br>Stay for the moment.</h2>
+<div class="meta reveal"><span><i data-lucide="map-pin" width="14"></i> 18 Mercer Lane, Downtown</span><span><i data-lucide="clock-3" width="14"></i> Mon–Sun · 7am–8pm</span></div>
+<a class="pill light reveal" href="#find" style="margin-top:30px">Find us <i data-lucide="arrow-up-right" width="13"></i></a>
+</div>
+</section>
+
+<section class="find" id="find">
+<div class="container findgrid">
+<div class="reveal"><div class="label">Visit AROMA</div><h2>Find your<br><em>way here.</em></h2><p>Our café is in the heart of Downtown — easy to reach, harder to leave.</p><div class="hours"><div class="hour"><span>Monday — Friday</span><span>7:00am — 8:00pm</span></div><div class="hour"><span>Saturday</span><span>8:00am — 9:00pm</span></div><div class="hour"><span>Sunday</span><span>8:00am — 7:00pm</span></div></div><a class="pill dark" target="_blank" rel="noopener" href="https://www.openstreetmap.org/?mlat=40.7128&mlon=-74.0060#map=16/40.7128/-74.0060" style="margin-top:25px">Open directions <i data-lucide="external-link" width="13"></i></a></div>
+<div class="minimap reveal"><div id="map2"></div></div>
+</div>
+</section>
+
+<section class="reviews"><div class="container"><div class="orbit"><i data-lucide="sparkles" width="16"></i></div><div class="label">A few words from the regulars</div><div class="quote" id="quote"></div><div class="author" id="author"></div><div class="role" id="role"></div><div class="dots" id="dots"></div></div></section>
+
+<section class="cta"><div class="container ctagrid"><div class="reveal"><div class="label" style="color:#b98c69">Stay in the loop</div><h2>Make room for<br><em>better coffee.</em></h2></div><div class="reveal"><p class="ctacopy">New releases, café notes, seasonal drinks, and the occasional reason to slow down.</p><form class="form" id="newsletter"><input type="email" required placeholder="Your email address"><button>Join <i data-lucide="arrow-up-right" width="13"></i></button></form></div></div></section>
+</main>
+
+<footer>
+<div class="container">
+<div class="footgrid">
+<div><div class="footbrand">AROMA</div><p class="footdesc">Specialty coffee for slow mornings, long conversations, and the little moments in between.</p></div>
+<div><div class="footlabel">Explore</div><div class="footlinks"><a href="#menu">Menu</a><a href="#story">Our story</a><a href="#origins">Origins</a></div></div>
+<div><div class="footlabel">Visit</div><div class="footlinks"><span>18 Mercer Lane</span><span>Downtown</span><span>7am — 8pm</span></div></div>
+<div><div class="footlabel">Social</div><div class="footlinks"><a href="#">Instagram</a><a href="#">Pinterest</a><a href="#">TikTok</a></div></div>
+</div>
+<div class="footbottom"><span>© 2026 AROMA Coffee</span><span>Roasted with intention.</span></div>
+</div>
+</footer>
+
+<div class="mobileorder"><span><span id="mobileCartCount">0</span> items · <b id="mobileTotal">$0</b></span><button id="mobileCart">View bag</button></div>
+
+<div class="drawerback" id="drawerBack"></div>
+<aside class="drawer" id="drawer">
+<div class="drawertop"><h3>Your bag</h3><button class="close" id="drawerClose"><i data-lucide="x" width="16"></i></button></div>
+<div class="cartitems" id="cartItems"></div>
+<div class="drawerfoot"><div class="subtotal"><span>Subtotal</span><span id="subtotal">$0</span></div><button class="pill dark" style="width:100%" id="checkout">Continue to checkout <i data-lucide="arrow-right" width="13"></i></button></div>
+</aside>
+
+<div class="modalback" id="modalBack">
+<div class="modal" id="modal">
+<img id="modalImg" class="modalimg" alt="">
+<div class="modalbody"><div class="label" id="modalMeta"></div><h3 id="modalName"></h3><p id="modalDesc"></p><div class="modalprice" id="modalPrice"></div><button class="pill dark" style="margin-top:25px" id="modalAdd">Add to bag <i data-lucide="plus" width="13"></i></button></div>
+<button class="close modalclose" id="modalClose"><i data-lucide="x" width="16"></i></button>
+</div></div>
+
+<div class="toast" id="toast">Added to your bag.</div>
+
+<script>
+lucide.createIcons();
+gsap.registerPlugin(ScrollTrigger);
+
+const products=[
+{id:1,name:"Ethiopia Yirgacheffe",cat:"coffee",meta:"Ethiopia · Light",desc:"Jasmine, citrus and honey with a clean finish.",price:18,img:"https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=88"},
+{id:2,name:"Colombia Reserve",cat:"coffee",meta:"Colombia · Medium",desc:"Caramel, cocoa and red apple in balance.",price:20,img:"https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=900&q=88"},
+{id:3,name:"Midnight Espresso",cat:"coffee",meta:"Brazil · Dark",desc:"Dark chocolate, walnut and molasses.",price:16,img:"https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?auto=format&fit=crop&w=900&q=88"},
+{id:4,name:"House No. 01",cat:"coffee",meta:"AROMA · Medium",desc:"Toffee, almond and milk chocolate.",price:17,img:"https://images.unsplash.com/photo-1512568400610-62da28bc8a13?auto=format&fit=crop&w=900&q=88"},
+{id:5,name:"Velvet Latte",cat:"drink",meta:"Espresso · Milk",desc:"Double espresso, silky steamed milk.",price:6,img:"https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=900&q=88"},
+{id:6,name:"Iced Oat Latte",cat:"drink",meta:"Iced · Oat",desc:"Bright espresso, oat milk and plenty of ice.",price:6.5,img:"https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=900&q=88"},
+{id:7,name:"Cocoa Mocha",cat:"drink",meta:"Espresso · Cocoa",desc:"Rich cocoa, espresso and microfoam.",price:6.8,img:"https://images.unsplash.com/photo-1578314675249-a6910f80cc4e?auto=format&fit=crop&w=900&q=88"},
+{id:8,name:"Vanilla Cold Brew",cat:"drink",meta:"Cold · 16oz",desc:"Slow-steeped coffee with soft vanilla.",price:6.2,img:"https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=900&q=88"},
+{id:9,name:"Almond Croissant",cat:"food",meta:"Pastry · Fresh",desc:"Buttery layers, almond cream and toasted flakes.",price:5.5,img:"https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=900&q=88"},
+{id:10,name:"Cinnamon Morning Bun",cat:"food",meta:"Pastry · Fresh",desc:"Soft laminated pastry with cinnamon sugar.",price:5,img:"https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=88"},
+{id:11,name:"Dark Chocolate Cookie",cat:"food",meta:"Baked · Daily",desc:"Crisp edge, soft center, dark chocolate.",price:4,img:"https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&w=900&q=88"},
+{id:12,name:"AROMA Gift Box",cat:"beans",meta:"Gift · 3 x 100g",desc:"Three rotating coffees packed for sharing.",price:42,img:"https://images.unsplash.com/photo-1497515114629-f71d768fd07c?auto=format&fit=crop&w=900&q=88"}
+];
+const filters=[["all","All"],["coffee","Coffee"],["drink","Drinks"],["food","Pastries"],["beans","Gifts"]];
+let activeFilter="all",cart={};
+
+const productsEl=document.getElementById("products"),filtersEl=document.getElementById("filters");
+filters.forEach(([id,label])=>{
+ const b=document.createElement("button");b.className="filter"+(id==="all"?" active":"");b.textContent=label;
+ b.onclick=()=>{activeFilter=id;document.querySelectorAll(".filter").forEach(x=>x.classList.remove("active"));b.classList.add("active");renderProducts()};
+ filtersEl.appendChild(b);
+});
+function renderProducts(){
+ productsEl.innerHTML="";
+ const list=activeFilter==="all"?products:products.filter(p=>p.cat===activeFilter);
+ list.forEach(p=>{
+  const el=document.createElement("article");el.className="product reveal";
+  el.innerHTML=`<img class="productimg" src="${p.img}" alt="${p.name}" loading="lazy"><div class="productbody"><div class="productmeta"><span>${p.meta}</span><span>${p.cat}</span></div><h3>${p.name}</h3><p>${p.desc}</p><div class="productfoot"><span class="price">$${p.price.toFixed(2)}</span><button class="add" aria-label="Add ${p.name}"><i data-lucide="plus" width="15"></i></button></div><button class="quick">Quick view →</button></div>`;
+  el.querySelector(".add").onclick=()=>addCart(p.id);
+  el.querySelector(".quick").onclick=()=>openModal(p);
+  productsEl.appendChild(el);
+ });
+ lucide.createIcons();
+ gsap.utils.toArray("#products .reveal").forEach(el=>gsap.fromTo(el,{opacity:0,y:18},{opacity:1,y:0,duration:.55,ease:"power3.out"}));
+}
+renderProducts();
+
+function addCart(id){
+ cart[id]=(cart[id]||0)+1;updateCart();showToast("Added to your bag.");
+}
+function changeQty(id,delta){
+ cart[id]=(cart[id]||0)+delta;if(cart[id]<=0)delete cart[id];updateCart();
+}
+function updateCart(){
+ const rows=document.getElementById("cartItems"),items=Object.entries(cart);
+ let total=0,count=0;
+ if(!items.length) rows.innerHTML='<div class="empty">Your bag is waiting for something good.</div>';
+ else{
+  rows.innerHTML="";
+  items.forEach(([id,qty])=>{
+   const p=products.find(x=>x.id==id),line=p.price*qty;total+=line;count+=qty;
+   const row=document.createElement("div");row.className="cartrow";
+   row.innerHTML=`<img src="${p.img}" alt="${p.name}"><div><h4>${p.name}</h4><p>$${p.price.toFixed(2)} each</p><div class="qty"><button>−</button><span>${qty}</span><button>+</button></div></div><div class="cartprice">$${line.toFixed(2)}</div>`;
+   const q=row.querySelectorAll(".qty button");q[0].onclick=()=>changeQty(p.id,-1);q[1].onclick=()=>changeQty(p.id,1);rows.appendChild(row);
+  });
+ }
+ document.getElementById("cartCount").textContent=count;
+ document.getElementById("mobileCartCount").textContent=count;
+ document.getElementById("mobileTotal").textContent="$"+total.toFixed(2);
+ document.getElementById("subtotal").textContent="$"+total.toFixed(2);
+}
+updateCart();
+
+const drawer=document.getElementById("drawer"),back=document.getElementById("drawerBack");
+function openCart(){drawer.classList.add("open");back.classList.add("open");document.body.classList.add("lock")}
+function closeCart(){drawer.classList.remove("open");back.classList.remove("open");document.body.classList.remove("lock")}
+document.getElementById("cartBtn").onclick=openCart;document.getElementById("mobileCart").onclick=openCart;document.getElementById("drawerClose").onclick=closeCart;back.onclick=closeCart;
+document.getElementById("checkout").onclick=()=>showToast("Checkout is ready to connect to Stripe or Paystack.");
+
+const modalBack=document.getElementById("modalBack"),modalImg=document.getElementById("modalImg"),modalMeta=document.getElementById("modalMeta"),modalName=document.getElementById("modalName"),modalDesc=document.getElementById("modalDesc"),modalPrice=document.getElementById("modalPrice"),modalAdd=document.getElementById("modalAdd");
+let modalProduct=null;
+function openModal(p){modalProduct=p;modalImg.src=p.img;modalImg.alt=p.name;modalMeta.textContent=p.meta;modalName.textContent=p.name;modalDesc.textContent=p.desc;modalPrice.textContent="$"+p.price.toFixed(2);modalBack.classList.add("open");document.body.classList.add("lock")}
+function closeModal(){modalBack.classList.remove("open");document.body.classList.remove("lock")}
+document.getElementById("modalClose").onclick=closeModal;modalBack.onclick=e=>{if(e.target===modalBack)closeModal()};modalAdd.onclick=()=>{addCart(modalProduct.id);closeModal()};
+
+function showToast(text){const t=document.getElementById("toast");t.textContent=text;t.classList.add("show");clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.classList.remove("show"),2200)}
+
+document.getElementById("subscribeBtn").onclick=()=>showToast("Subscription selected — connect checkout to activate it.");
+document.getElementById("newsletter").onsubmit=e=>{e.preventDefault();e.target.reset();showToast("You're on the list.");};
+
+const origins=[
+{name:"Yirgacheffe",place:"Ethiopia",lat:6.15,lng:38.2},
+{name:"Huila",place:"Colombia",lat:2.54,lng:-75.53},
+{name:"Minas Gerais",place:"Brazil",lat:-18.52,lng:-44.56},
+{name:"Antigua",place:"Guatemala",lat:14.56,lng:-90.73}
+];
+const originList=document.getElementById("originList");
+origins.forEach((o,i)=>{const el=document.createElement("div");el.className="originrow"+(i===0?" active":"");el.innerHTML=`<div><div class="originname">${o.name}</div><div class="originplace">${o.place}</div></div><i data-lucide="arrow-up-right" width="15"></i>`;el.onclick=()=>selectOrigin(i);originList.appendChild(el)});
+lucide.createIcons();
+
+const map=L.map("map",{scrollWheelZoom:false,zoomControl:true}).setView([10,-35],2);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:'© OpenStreetMap contributors'}).addTo(map);
+const markers=origins.map(o=>L.marker([o.lat,o.lng]).addTo(map).bindPopup(`<b>${o.name}</b><br>${o.place}`));
+function selectOrigin(i){document.querySelectorAll(".originrow").forEach((x,j)=>x.classList.toggle("active",j===i));map.flyTo([origins[i].lat,origins[i].lng],6,{duration:1.1});markers[i].openPopup()}
+setTimeout(()=>map.invalidateSize(),500);
+
+const map2=L.map("map2",{scrollWheelZoom:false}).setView([40.7128,-74.0060],15);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:'© OpenStreetMap contributors'}).addTo(map2);
+L.marker([40.7128,-74.0060]).addTo(map2).bindPopup("<b>AROMA Coffee</b><br>18 Mercer Lane, Downtown").openPopup();
+setTimeout(()=>map2.invalidateSize(),600);
+
+const reviews=[
+["“The kind of coffee shop you walk into for ten minutes and somehow spend the whole morning.”","Amelia Hart","Regular since 2022"],
+["“Beautiful space, exceptional beans, and the attention to detail is on another level.”","Daniel Cole","Coffee enthusiast"],
+["“Their house roast has quietly become the best part of my morning routine.”","Maya Bennett","Local creative"]
+];
+let reviewIndex=0;
+function renderReview(){
+ const [q,a,r]=reviews[reviewIndex];document.getElementById("quote").textContent=q;document.getElementById("author").textContent=a;document.getElementById("role").textContent=r;
+ const dots=document.getElementById("dots");dots.innerHTML="";
+ reviews.forEach((_,i)=>{const d=document.createElement("button");d.className="dot"+(i===reviewIndex?" active":"");d.onclick=()=>{reviewIndex=i;renderReview()};dots.appendChild(d)});
+}
+renderReview();setInterval(()=>{reviewIndex=(reviewIndex+1)%reviews.length;renderReview()},6000);
+
+const mobile=document.getElementById("mobile");
+document.getElementById("menuOpen").onclick=()=>{mobile.classList.add("open");document.body.classList.add("lock")};
+document.getElementById("menuClose").onclick=()=>{mobile.classList.remove("open");document.body.classList.remove("lock")};
+document.querySelectorAll(".mobilelinks a,.mobile .pill").forEach(a=>a.onclick=()=>{mobile.classList.remove("open");document.body.classList.remove("lock")});
+
+gsap.from(".heroanim",{opacity:0,y:28,duration:.9,stagger:.1,ease:"power3.out",delay:.2});
+gsap.to(".heroimg",{yPercent:7,ease:"none",scrollTrigger:{trigger:".hero",start:"top top",end:"bottom top",scrub:true}});
+gsap.utils.toArray(".reveal").forEach(el=>gsap.fromTo(el,{opacity:0,y:25},{opacity:1,y:0,duration:.8,ease:"power3.out",scrollTrigger:{trigger:el,start:"top 88%",once:true}}));
+gsap.to(".cafeimg",{scale:1.07,ease:"none",scrollTrigger:{trigger:".cafe",start:"top bottom",end:"bottom top",scrub:true}});
+
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeCart();closeModal();mobile.classList.remove("open");document.body.classList.remove("lock")}});
+
+window.addEventListener("resize",()=>{map.invalidateSize();map2.invalidateSize()});
+</script>
+</body>
+</html>
+'''
+path = Path("/mnt/data/aroma-coffee-single-file.html")
+path.write_text(html, encoding="utf-8")
+print(f"Created: {path}")
